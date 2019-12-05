@@ -1,57 +1,16 @@
 package main
 
-import "fmt"
-import "math"
+import (
+	"fmt"
+	"math"
+
+	"github.com/onlyafly/oakblue/internal/spec"
+)
 
 // The VM has 65,536 memory locations, each of which stores a 16-bit value
 var memory [math.MaxUint16]uint16
 
-// Registers:
-//  8 general purpose registers (R0-R7)
-//  1 program counter (PC) register
-//  1 condition flags (COND) register
-const (
-	r_r0 = iota
-	r_r1
-	r_r2
-	r_r3
-	r_r4
-	r_r5
-	r_r6
-	r_r7
-	r_pc
-	r_cond
-	maxRegisters
-)
-
-// Each instruction is 16 bits long, with the left 4 bits storing the opcode. The rest of the bits
-// are used to store the parameters.
-const (
-	op_br   = iota // branch
-	op_add         // add
-	op_ld          // load
-	op_st          // store
-	op_jsr         // jump register
-	op_and         // bitwise and
-	op_ldr         // load register
-	op_str         // store register
-	op_rti         // unused
-	op_not         // bitwise not
-	op_ldi         // load indirect
-	op_sti         // store indirect
-	op_jmp         // jump
-	op_res         // reserved (unused)
-	op_lea         // load effective address
-	op_trap        // execute trap
-)
-
-var regs [maxRegisters]uint16
-
-const (
-	fl_pos = 1 << iota // P
-	fl_zro             // Z
-	fl_neg             // N
-)
+var regs [spec.MaxRegisters]uint16
 
 const (
 	pc_start   = 0x3000 // default PC start location
@@ -64,17 +23,17 @@ const (
 func main() {
 
 	// set the PC to starting position
-	regs[r_pc] = pc_start
+	regs[spec.R_PC] = pc_start
 
 	running := true
 	for running {
-		regs[r_pc]++
+		regs[spec.R_PC]++
 
-		instr := readMemory(regs[r_pc])
+		instr := readMemory(regs[spec.R_PC])
 		op := instr >> 12
 
 		switch op {
-		case op_add:
+		case spec.OP_ADD:
 			// ADD
 			//  15-12  opcode
 			//  11-09  DR: destination register
@@ -97,35 +56,35 @@ func main() {
 			}
 
 			updateFlags(dr)
-		case op_and:
+		case spec.OP_AND:
 			// FIXME
-		case op_not:
+		case spec.OP_NOT:
 			// FIXME
-		case op_br:
+		case spec.OP_BR:
 			// FIXME
-		case op_jmp:
+		case spec.OP_JMP:
 			// FIXME
-		case op_jsr:
+		case spec.OP_JSR:
 			// FIXME
-		case op_ld:
+		case spec.OP_LD:
 			// FIXME
-		case op_ldi:
+		case spec.OP_LDI:
 			// FIXME
-		case op_ldr:
+		case spec.OP_LDR:
 			// FIXME
-		case op_lea:
+		case spec.OP_LEA:
 			// FIXME
-		case op_st:
+		case spec.OP_ST:
 			// FIXME
-		case op_sti:
+		case spec.OP_STI:
 			// FIXME
-		case op_str:
+		case spec.OP_STR:
 			// FIXME
-		case op_trap:
+		case spec.OP_TRAP:
 			// FIXME
-		case op_res:
+		case spec.OP_RES:
 			// FIXME
-		case op_rti:
+		case spec.OP_RTI:
 			// FIXME
 		default:
 			// FIXME
@@ -151,10 +110,10 @@ func signExtend(x uint16, bitCount int) uint16 {
 // Any time a value is written to a register, we need to update the flags to indicate its sign
 func updateFlags(r uint16) {
 	if regs[r] == 0 {
-		regs[r_cond] = fl_zro
+		regs[spec.R_COND] = spec.FL_ZRO
 	} else if (regs[r] >> 15) == 1 { // a 1 in the left-most bit indicates negative
-		regs[r_cond] = fl_neg
+		regs[spec.R_COND] = spec.FL_NEG
 	} else {
-		regs[r_cond] = fl_pos
+		regs[spec.R_COND] = spec.FL_POS
 	}
 }

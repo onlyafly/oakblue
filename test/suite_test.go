@@ -8,19 +8,21 @@ import (
 	"testing"
 
 	"github.com/onlyafly/oakblue/internal/ast"
+	"github.com/onlyafly/oakblue/internal/emitter"
 	"github.com/onlyafly/oakblue/internal/interpreter"
 	"github.com/onlyafly/oakblue/internal/parser"
 	"github.com/onlyafly/oakblue/internal/util"
 )
 
 const (
-	testsuiteDir   = "test/testdata"
-	baseDir        = ".."
-	fileExtPattern = "*.yaml"
+	assemblerSuiteTestDataDir = "test/assembler_suite"
+	vmSuiteTestDataDir        = "test/vm_suite"
+	baseDir                   = ".."
+	fileExtPattern            = "*.asm"
 )
 
-// TestFullSuite runs the entire language test suite
-func TestFullSuite(t *testing.T) {
+// TestAssemblerSuite runs the entire language test suite
+func TestAssemblerSuite(t *testing.T) {
 
 	// We set the base directory so that the test cases can use paths that make
 	// sense. If this is not set, the current working directory while the tests
@@ -30,7 +32,7 @@ func TestFullSuite(t *testing.T) {
 		t.Errorf("Error changing directory to <" + baseDir + ">: " + err.Error())
 	}
 
-	err = filepath.Walk(testsuiteDir, func(fp string, fi os.FileInfo, err error) error {
+	err = filepath.Walk(assemblerSuiteTestDataDir, func(fp string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return nil // Can't visit this node, but continue walking elsewhere
 		}
@@ -45,18 +47,54 @@ func TestFullSuite(t *testing.T) {
 		}
 
 		if matched {
-			testInputFile(fp, t)
+			testAssemblingFile(fp, t)
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		t.Errorf("Error walking test suite directory <" + testsuiteDir + ">: " + err.Error())
+		t.Errorf("Error walking test suite directory <" + assemblerSuiteTestDataDir + ">: " + err.Error())
 	}
 }
 
-func testInputFile(sourceFilePath string, t *testing.T) {
+func testAssemblingFile(sourceFilePath string, t *testing.T) {
+	sourceDirPart, sourceFileNamePart := filepath.Split(sourceFilePath)
+	parts := strings.Split(sourceFileNamePart, ".")
+	testName := parts[0]
+
+	outputFilePath := sourceDirPart + testName + ".bin"
+
+	input, errIn := util.ReadFile(sourceFilePath)
+	if errIn != nil {
+		t.Errorf("Error reading file <" + sourceFilePath + ">: " + errIn.Error())
+		return
+	}
+
+	expectedRaw, errOut := util.ReadFile(outputFilePath)
+	if errOut != nil {
+		t.Errorf("Error reading file <" + outputFilePath + ">: " + errOut.Error())
+		return
+	}
+
+	// Remove any carriage return line endings from .out file
+	expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
+	expected := strings.TrimSpace(expectedWithUntrimmed)
+
+	programAst, errors := parser.Parse(input, sourceFilePath)
+	if errors.Len() != 0 {
+		verify(t, sourceFilePath, input, expected, errors.String())
+	} else {
+		actual, emitError := emitter.Emit(programAst)
+		if emitError != nil {
+			return
+		}
+
+		verify(t, sourceFilePath, input, expected, actual)
+	}
+}
+
+func testExecutingFile(sourceFilePath string, t *testing.T) {
 	sourceDirPart, sourceFileNamePart := filepath.Split(sourceFilePath)
 	parts := strings.Split(sourceFileNamePart, ".")
 	testName := parts[0]
