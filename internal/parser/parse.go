@@ -1,11 +1,10 @@
 package parser
 
 import (
-	"fmt"
+	"strconv"
+
 	"github.com/onlyafly/oakblue/internal/ast"
 	"github.com/onlyafly/oakblue/internal/spec"
-	"strconv"
-	"unicode/utf8"
 )
 
 // Parse a string into nodes
@@ -16,7 +15,7 @@ func Parse(input string, sourceName string) (ast.Program, ParserErrorList) {
 }
 
 // Parse accepts a string and the name of the source of the code, and returns
-// the Vamos nodes therein, along with a list of any errors found.
+// the Oakblue nodes therein, along with a list of any errors found.
 func Original_Parse(input string, sourceName string) ([]ast.Node, ParserErrorList) {
 	s, _ := Scan(sourceName, input)
 	errorList := NewParserErrorList()
@@ -51,9 +50,11 @@ func (p *parser) next() Token {
 	return p.lookahead[p.lookaheadCount]
 }
 
+/* TODO still needed?
 func (p *parser) backup() {
 	p.lookaheadCount++
 }
+*/
 
 func (p *parser) peek() Token {
 	if p.lookaheadCount > 0 {
@@ -91,17 +92,19 @@ func parseNode(p *parser, errors *ParserErrorList) ast.Node {
 	case TcError:
 		errors.Add(token.Loc, "Error token: "+token.String())
 	case TcLeftParen:
+		/* TODO delete
 		var list []ast.Node
 		for p.peek().Code != TcRightParen {
 			if p.peek().Code == TcEOF || p.peek().Code == TcError {
 				errors.Add(token.Loc, "Unbalanced parentheses")
 				p.next()
-				return &ast.Nil{Location: token.Loc}
+				return &ast.Invalid{Location: token.Loc}
 			}
 			list = append(list, parseNode(p, errors))
 		}
 		p.next()
 		return &ast.List{Nodes: list, Location: token.Loc}
+		*/
 	case TcRightParen:
 		errors.Add(token.Loc, "Unbalanced parentheses")
 	case TcNumber:
@@ -111,21 +114,24 @@ func parseNode(p *parser, errors *ParserErrorList) ast.Node {
 	case TcString:
 		return parseString(token, errors)
 	case TcChar:
-		return parseChar(token, errors)
+		//TODO delete: return parseChar(token, errors)
 	case TcSingleQuote:
 		return parseQuote(p, errors)
 	default:
 		errors.Add(token.Loc, "Unrecognized token: "+token.String())
 	}
 
-	return &ast.Nil{Location: token.Loc}
+	return &ast.Invalid{Location: token.Loc}
 }
 
-func parseQuote(p *parser, errors *ParserErrorList) ast.AnnotatedNode {
-	node := parseAnnotatedNode(p, errors)
+func parseQuote(p *parser, errors *ParserErrorList) ast.Node {
+	/* TODO remove
+	node := parseNode(p, errors)
 	var list []ast.Node
 	list = append(list, &ast.Symbol{Name: "quote"}, node)
 	return &ast.List{Nodes: list}
+	*/
+	return &ast.Invalid{}
 }
 
 func parseNumber(t Token, errors *ParserErrorList) *ast.Number {
@@ -139,9 +145,9 @@ func parseNumber(t Token, errors *ParserErrorList) *ast.Number {
 	return &ast.Number{Value: f, Location: t.Loc}
 }
 
-func parseSymbol(t Token, errors *ParserErrorList) ast.AnnotatedNode {
+func parseSymbol(t Token, errors *ParserErrorList) ast.Node {
 	if t.Value == "nil" {
-		return &ast.Nil{Location: t.Loc}
+		return &ast.Invalid{Location: t.Loc}
 	}
 	return &ast.Symbol{Name: t.Value, Location: t.Loc}
 }
@@ -151,22 +157,9 @@ func parseString(t Token, errors *ParserErrorList) *ast.Str {
 	return &ast.Str{Value: content, Location: t.Loc}
 }
 
-func parseChar(t Token, errors *ParserErrorList) *ast.Char {
-	switch {
-	case t.Value == "\\newline":
-		return &ast.Char{Value: '\n'}
-	case len(t.Value) == 2:
-		_, leadingSlashWidth := utf8.DecodeRuneInString(t.Value)
-		r, _ := utf8.DecodeRuneInString(t.Value[leadingSlashWidth:])
-		return &ast.Char{Value: r}
-	}
-
-	errors.Add(t.Loc, fmt.Sprintf("Invalid character literal: %v", t.Value))
-	return &ast.Char{}
-}
-
 ////////// Helper Procedures
 
+/* TODO still needed?
 func ensureSymbol(n ast.Node) *ast.Symbol {
 	if v, ok := n.(*ast.Symbol); ok {
 		return v
@@ -174,11 +167,4 @@ func ensureSymbol(n ast.Node) *ast.Symbol {
 
 	panic("Expected symbol: " + n.String())
 }
-
-func ensureList(n ast.Node) *ast.List {
-	if v, ok := n.(*ast.List); ok {
-		return v
-	}
-
-	panic("Expected list: " + n.String())
-}
+*/

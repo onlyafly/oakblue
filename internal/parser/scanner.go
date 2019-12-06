@@ -7,9 +7,10 @@ package parser
 
 import (
 	"fmt"
-	"github.com/onlyafly/vamos/lang/token"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/onlyafly/oakblue/internal/token"
 )
 
 ////////// Token
@@ -121,7 +122,7 @@ func (s *Scanner) peek() rune {
 // accept consumes the next rune
 // if it's from the valid set.
 func (s *Scanner) accept(valid string) bool {
-	if strings.IndexRune(valid, s.next()) >= 0 {
+	if strings.ContainsRune(valid, s.next()) {
 		return true
 	}
 	s.backup()
@@ -130,7 +131,7 @@ func (s *Scanner) accept(valid string) bool {
 
 // acceptRun consumes a run of runes from the valid set.
 func (s *Scanner) acceptRun(valid string) {
-	for strings.IndexRune(valid, s.next()) >= 0 {
+	for strings.ContainsRune(valid, s.next()) {
 	}
 	s.backup()
 }

@@ -3,7 +3,7 @@ package parser
 import (
 	"testing"
 
-	"github.com/onlyafly/vamos/testhelp"
+	"github.com/onlyafly/oakblue/internal/testhelp"
 )
 
 func TestScan(t *testing.T) {

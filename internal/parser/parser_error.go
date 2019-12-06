@@ -2,7 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"github.com/onlyafly/vamos/lang/token"
+
+	"github.com/onlyafly/oakblue/internal/token"
 )
 
 ////////// ParserError

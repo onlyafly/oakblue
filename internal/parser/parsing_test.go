@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/onlyafly/vamos/testhelp"
+	"github.com/onlyafly/oakblue/internal/testhelp"
 	"testing"
 )
 
