@@ -25,6 +25,8 @@ func (t Token) String() string {
 	switch t.Code {
 	case TcEOF:
 		return "EOF"
+	case TcNewline:
+		return "NEWLINE"
 	case TcError:
 		return t.Value
 	}
@@ -47,6 +49,7 @@ const (
 	TcEOF
 	TcString
 	TcChar
+	TcNewline
 )
 
 const eof = -1
@@ -70,7 +73,7 @@ type Scanner struct {
 }
 
 func (s *Scanner) String() string {
-	return fmt.Sprintf("<scanner remaining=%#v>", s.input[s.start:s.pos])
+	return fmt.Sprintf("<scanner next=%#v>", s.input[s.start:s.pos])
 }
 
 func (s *Scanner) run() {
@@ -177,7 +180,7 @@ Outer:
 			s.ignore()
 		case isNewLine(r):
 			s.line++
-			s.ignore()
+			s.emit(TcNewline)
 		case r == '(':
 			s.emit(TcLeftParen)
 		case r == ')':

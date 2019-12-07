@@ -7,16 +7,10 @@ import (
 	"github.com/onlyafly/oakblue/internal/spec"
 )
 
-// Parse a string into nodes
-func Parse(input string, sourceName string) (ast.Program, ParserErrorList) {
-	var program ast.Program
-	program = append(program, ast.NewStatement([]ast.Node{ast.NewOp(spec.OP_ADD)}))
-	return program, nil
-}
-
 // Parse accepts a string and the name of the source of the code, and returns
 // the Oakblue nodes therein, along with a list of any errors found.
-func Original_Parse(input string, sourceName string) ([]ast.Node, ParserErrorList) {
+func Parse(input string, sourceName string) (ast.Program, ParserErrorList) {
+	/* TODO readd this
 	s, _ := Scan(sourceName, input)
 	errorList := NewParserErrorList()
 	s.errorHandler = func(t Token, message string) {
@@ -29,8 +23,13 @@ func Original_Parse(input string, sourceName string) ([]ast.Node, ParserErrorLis
 	if errorList.Len() > 0 {
 		return nil, errorList
 	}
+	*/
 
-	return nodes, nil
+	// TODO remove this
+	var program ast.Program
+	program = append(program, ast.NewStatement([]ast.Node{ast.NewOp(spec.OP_ADD)}))
+
+	return program, nil
 }
 
 ////////// Parser
