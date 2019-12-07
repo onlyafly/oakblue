@@ -9,6 +9,6 @@ import (
 //TODO var readLine func() string
 
 // Eval a node
-func Eval(e Env, n ast.Node, w io.Writer, rl func() string) (result ast.Node, err error) {
+func Eval(e Env, program ast.Program, w io.Writer, rl func() string) (result ast.Node, err error) {
 	return ast.NewStr("ert"), nil
 }

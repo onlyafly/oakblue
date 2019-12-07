@@ -17,8 +17,8 @@ func ReadLine() string {
 	return strings.TrimRight(line, "\n")
 }
 
-// ReadFile reads the entire contents of a file
-func ReadFile(fileName string) (string, error) {
+// ReadTextFile reads the entire contents of a file
+func ReadTextFile(fileName string) (string, error) {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return "", err
@@ -28,8 +28,13 @@ func ReadFile(fileName string) (string, error) {
 	return content, nil
 }
 
-// WriteFile writes the contents of a string to a file
-func WriteFile(fileName string, data string) error {
+// ReadBinaryFile reads the entire contents of a file
+func ReadBinaryFile(fileName string) ([]byte, error) {
+	return ioutil.ReadFile(fileName)
+}
+
+// WriteTextFile writes the contents of a string to a file
+func WriteTextFile(fileName string, data string) error {
 	f, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return err
