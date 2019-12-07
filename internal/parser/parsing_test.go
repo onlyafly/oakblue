@@ -1,19 +1,19 @@
 package parser
 
 import (
-	"github.com/onlyafly/oakblue/internal/util"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseSymbol(t *testing.T) {
 	errors := NewParserErrorList()
 
-	result1 := parseSymbol(Token{Value: "fred"}, &errors)
-	util.CheckEqualString(t, "fred", result1.String())
+	result := parseSymbol(Token{Value: "fred"}, &errors)
+	assert.Equal(t, "fred", result.String())
 }
 
 func TestParse_Simple(t *testing.T) {
 	result, _ := Parse("ADD R0 R0 1", "test")
-
-	util.CheckEqualString(t, "ADD R0 R0 1", result.String())
+	assert.Equal(t, "ADD R0 R0 1", result.String())
 }
