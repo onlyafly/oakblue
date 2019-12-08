@@ -67,10 +67,19 @@ func (p *parser) inputEmpty() bool {
 	return false
 }
 
+func (p *parser) skipEmptyLines() {
+	for p.peek().Code == TcNewline {
+		p.next()
+	}
+}
+
 ////////// Parsing
 
 func parseStatements(p *parser, errors *ParserErrorList) []*ast.Statement {
 	var statements []*ast.Statement
+
+	p.skipEmptyLines()
+
 	for !p.inputEmpty() {
 		statements = append(statements, parseStatement(p, errors))
 	}
@@ -79,7 +88,12 @@ func parseStatements(p *parser, errors *ParserErrorList) []*ast.Statement {
 
 func parseStatement(p *parser, errors *ParserErrorList) *ast.Statement {
 	var nodes []ast.Node
+
 	for !p.inputEmpty() {
+		if p.peek().Code == TcNewline {
+			p.next()
+			break
+		}
 		nodes = append(nodes, parseNode(p, errors))
 	}
 	return ast.NewStatement(nodes)
@@ -108,7 +122,7 @@ func parseNode(p *parser, errors *ParserErrorList) ast.Node {
 	case TcRightParen:
 		errors.Add(token.Loc, "Unbalanced parentheses")
 	case TcNumber:
-		return parseNumber(token, errors)
+		return parseInteger(token, errors)
 	case TcSymbol:
 		return parseSymbol(token, errors)
 	case TcString:
@@ -134,15 +148,15 @@ func parseQuote(p *parser, errors *ParserErrorList) ast.Node {
 	return &ast.Invalid{}
 }
 
-func parseNumber(t Token, errors *ParserErrorList) *ast.Number {
-	f, ferr := strconv.ParseFloat(t.Value, 64)
+func parseInteger(t Token, errors *ParserErrorList) *ast.Integer {
+	x, err := strconv.ParseInt(t.Value, 10, 32)
 
-	if ferr != nil {
-		errors.Add(t.Loc, "Invalid number: "+t.Value)
-		return &ast.Number{Value: 0.0, Location: t.Loc}
+	if err != nil {
+		errors.Add(t.Loc, "Invalid integer: "+t.Value)
+		return &ast.Integer{Value: 0, Location: t.Loc}
 	}
 
-	return &ast.Number{Value: f, Location: t.Loc}
+	return &ast.Integer{Value: int(x), Location: t.Loc}
 }
 
 func parseSymbol(t Token, errors *ParserErrorList) ast.Node {

@@ -12,7 +12,7 @@ import (
 type Program []*Statement
 
 func (p *Program) String() string {
-	return strings.Join(statementsToStrings(*p), " ")
+	return strings.Join(statementsToStrings(*p), "\n")
 }
 
 type Statement struct {
@@ -81,21 +81,17 @@ func NewStr(value string) *Str      { return &Str{Value: value} }
 func (s *Str) String() string       { return "\"" + s.Value + "\"" }
 func (s *Str) Loc() *token.Location { return s.Location }
 
-type Number struct {
-	Value    float64
+type Integer struct {
+	Value    int
 	Location *token.Location
 }
 
-func (num *Number) String() string {
-	rep := strconv.FormatFloat(
-		num.Value,
-		'f',
-		-1,
-		64)
-
+func NewInteger(value int) *Integer { return &Integer{Value: value} }
+func (x *Integer) String() string {
+	rep := strconv.FormatInt(int64(x.Value), 10)
 	return rep
 }
-func (num *Number) Loc() *token.Location { return num.Location }
+func (x *Integer) Loc() *token.Location { return x.Location }
 
 type Invalid struct {
 	Value    string
