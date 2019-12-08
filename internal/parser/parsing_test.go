@@ -3,11 +3,12 @@ package parser
 import (
 	"testing"
 
+	"github.com/onlyafly/oakblue/internal/syntax"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestParseSymbol(t *testing.T) {
-	errors := NewParserErrorList()
+	errors := syntax.NewErrorList()
 
 	result := parseSymbol(Token{Value: "fred"}, errors)
 	assert.Equal(t, "fred", result.String())

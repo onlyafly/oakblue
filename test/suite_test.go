@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/onlyafly/oakblue/internal/ast"
+	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/emitter"
 	"github.com/onlyafly/oakblue/internal/interpreter"
 	"github.com/onlyafly/oakblue/internal/parser"
@@ -105,7 +105,7 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		return
 	}
 
-	programAst, err := parser.Parse(input, sourceFilePath)
+	programCst, err := parser.Parse(input, sourceFilePath)
 
 	if err != nil {
 		// There were errors during the assembling, so look at the errors in the errors file
@@ -125,7 +125,7 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 	} else {
 		// There were no errors!
 
-		actual, emitError := emitter.Emit(programAst)
+		actual, emitError := emitter.Emit(programCst)
 		if emitError != nil {
 			return
 		}
@@ -177,7 +177,7 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 			return "text from dummy read line"
 		}
 
-		var result ast.Node
+		var result cst.Node
 		var evalError error
 
 		result, evalError = interpreter.Eval(e, program, &outputBuffer, dummyReadLine)

@@ -3,7 +3,7 @@ package interpreter
 import (
 	"fmt"
 
-	"github.com/onlyafly/oakblue/internal/ast"
+	"github.com/onlyafly/oakblue/internal/cst"
 )
 
 ////////// Env
@@ -12,9 +12,9 @@ import (
 // An environment (AKA a scope) contains symbols that are in scope and which
 // environment, if any, is the parent of this environment.
 type Env interface {
-	Set(name string, value ast.Node)
-	Update(name string, value ast.Node) bool
-	Get(name string) (ast.Node, bool)
+	Set(name string, value cst.Node)
+	Update(name string, value cst.Node) bool
+	Get(name string) (cst.Node, bool)
 	String() string
 	Parent() Env
 	Name() string
@@ -25,7 +25,7 @@ type Env interface {
 // MapEnv is an implementation of an environment using a hash map.
 type MapEnv struct {
 	name    string
-	symbols map[string]ast.Node
+	symbols map[string]cst.Node
 	parent  Env
 }
 
@@ -34,7 +34,7 @@ type MapEnv struct {
 func NewTopLevelMapEnv() *MapEnv {
 	e := &MapEnv{
 		name:    "TopLevel",
-		symbols: make(map[string]ast.Node),
+		symbols: make(map[string]cst.Node),
 		parent:  nil,
 	}
 
@@ -47,13 +47,13 @@ func NewTopLevelMapEnv() *MapEnv {
 func NewMapEnv(name string, parent Env) *MapEnv {
 	return &MapEnv{
 		name:    name,
-		symbols: make(map[string]ast.Node),
+		symbols: make(map[string]cst.Node),
 		parent:  parent,
 	}
 }
 
 // Set sets the initial value of a symbol.
-func (e *MapEnv) Set(name string, value ast.Node) {
+func (e *MapEnv) Set(name string, value cst.Node) {
 	if _, exists := e.symbols[name]; exists {
 		panicEvalError(value, "Cannot set the initial value of a symbol again: "+name)
 	} else {
@@ -62,7 +62,7 @@ func (e *MapEnv) Set(name string, value ast.Node) {
 }
 
 // Update updates the value of an existing symbol.
-func (e *MapEnv) Update(name string, value ast.Node) bool {
+func (e *MapEnv) Update(name string, value cst.Node) bool {
 	_, exists := e.symbols[name]
 
 	if !exists {
@@ -77,7 +77,7 @@ func (e *MapEnv) Update(name string, value ast.Node) bool {
 }
 
 // Get returns the value of a symbol.
-func (e *MapEnv) Get(name string) (ast.Node, bool) {
+func (e *MapEnv) Get(name string) (cst.Node, bool) {
 	value, exists := e.symbols[name]
 
 	if !exists {

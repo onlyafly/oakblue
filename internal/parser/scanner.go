@@ -10,13 +10,13 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/onlyafly/oakblue/internal/token"
+	"github.com/onlyafly/oakblue/internal/syntax"
 )
 
 ////////// Token
 
 type Token struct {
-	Loc   *token.Location
+	Loc   *syntax.Location
 	Code  TokenCode
 	Value string
 }
@@ -85,7 +85,7 @@ func (s *Scanner) run() {
 
 func (s *Scanner) emit(code TokenCode) {
 	s.Tokens <- Token{
-		Loc:   &token.Location{Pos: s.start, Line: s.line, Filename: s.name},
+		Loc:   &syntax.Location{Pos: s.start, Line: s.line, Filename: s.name},
 		Code:  code,
 		Value: s.input[s.start:s.pos],
 	}
@@ -141,7 +141,7 @@ func (s *Scanner) acceptRun(valid string) {
 
 func (s *Scanner) emitErrorf(format string, args ...interface{}) {
 	t := Token{
-		Loc:   &token.Location{Pos: s.start, Line: s.line, Filename: s.name},
+		Loc:   &syntax.Location{Pos: s.start, Line: s.line, Filename: s.name},
 		Code:  TcError,
 		Value: s.input[s.start:s.pos],
 	}

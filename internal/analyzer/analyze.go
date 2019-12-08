@@ -1,17 +1,18 @@
-package parser
+package analyzer
 
+/*
 import (
 	"strconv"
 
 	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/syntax"
 )
+*/
 
-// Parse accepts a string and the name of the source of the code, and returns
-// the Oakblue nodes therein, along with a list of any errors found.
-func Parse(input string, sourceName string) (cst.Listing, error) {
+/*
+func Analyze(input *cst.Listing) (ast.Listing, error) {
 	s, _ := Scan(sourceName, input)
-	errorList := syntax.NewErrorList()
+	errorList := Newsyntax.ErrorList()
 	s.errorHandler = func(t Token, message string) {
 		errorList.Add(t.Loc, message)
 	}
@@ -43,11 +44,6 @@ func (p *parser) next() Token {
 	return p.lookahead[p.lookaheadCount]
 }
 
-/* TODO still needed?
-func (p *parser) backup() {
-	p.lookaheadCount++
-}
-*/
 
 func (p *parser) peek() Token {
 	if p.lookaheadCount > 0 {
@@ -106,20 +102,6 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 	switch token.Code {
 	case TcError:
 		errors.Add(token.Loc, "Error token: "+token.String())
-	case TcLeftParen:
-		/* TODO delete
-		var list []cst.Node
-		for p.peek().Code != TcRightParen {
-			if p.peek().Code == TcEOF || p.peek().Code == TcError {
-				errors.Add(token.Loc, "Unbalanced parentheses")
-				p.next()
-				return &cst.Invalid{Location: token.Loc}
-			}
-			list = append(list, parseNode(p, errors))
-		}
-		p.next()
-		return &cst.List{Nodes: list, Location: token.Loc}
-		*/
 	case TcRightParen:
 		errors.Add(token.Loc, "Unbalanced parentheses")
 	case TcNumber:
@@ -140,12 +122,6 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 }
 
 func parseQuote(p *parser, errors *syntax.ErrorList) cst.Node {
-	/* TODO remove
-	node := parseNode(p, errors)
-	var list []cst.Node
-	list = append(list, &cst.Symbol{Name: "quote"}, node)
-	return &cst.List{Nodes: list}
-	*/
 	return &cst.Invalid{}
 }
 
@@ -172,9 +148,6 @@ func parseString(t Token, errors *syntax.ErrorList) *cst.Str {
 	return &cst.Str{Value: content, Location: t.Loc}
 }
 
-////////// Helper Procedures
-
-/* TODO still needed?
 func ensureSymbol(n cst.Node) *cst.Symbol {
 	if v, ok := n.(*cst.Symbol); ok {
 		return v

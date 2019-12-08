@@ -1,4 +1,4 @@
-package token
+package syntax
 
 type Location struct {
 	Pos      int // position within the file

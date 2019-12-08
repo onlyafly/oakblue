@@ -1,4 +1,4 @@
-package ast
+package cst
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/onlyafly/oakblue/internal/spec"
-	"github.com/onlyafly/oakblue/internal/token"
+	"github.com/onlyafly/oakblue/internal/syntax"
 )
 
-type Program []*Statement
+type Listing []*Statement
 
-func (p *Program) String() string {
-	return strings.Join(statementsToStrings(*p), "\n")
+func (l *Listing) String() string {
+	return strings.Join(statementsToStrings(*l), "\n")
 }
 
 type Statement struct {
@@ -38,7 +38,7 @@ func (x *Statement) String() string {
 // Node represents a parsed node.
 type Node interface {
 	fmt.Stringer
-	Loc() *token.Location
+	Loc() *syntax.Location
 }
 
 func nodesToStrings(nodes []Node) []string {
@@ -54,36 +54,36 @@ func nodesToStringsWithFunc(nodes []Node, convert func(n Node) string) []string 
 
 type Op struct {
 	Opcode   int
-	Location *token.Location
+	Location *syntax.Location
 }
 
-func NewOp(opcode int) *Op         { return &Op{Opcode: opcode} }
-func (o *Op) String() string       { return spec.OpcodeNames[o.Opcode] }
-func (o *Op) Loc() *token.Location { return o.Location }
+func NewOp(opcode int) *Op          { return &Op{Opcode: opcode} }
+func (o *Op) String() string        { return spec.OpcodeNames[o.Opcode] }
+func (o *Op) Loc() *syntax.Location { return o.Location }
 
 // Symbol is a node
 type Symbol struct {
 	Name     string
-	Location *token.Location
+	Location *syntax.Location
 }
 
-func NewSymbol(name string) *Symbol    { return &Symbol{Name: name} }
-func (s *Symbol) String() string       { return s.Name }
-func (s *Symbol) Loc() *token.Location { return s.Location }
+func NewSymbol(name string) *Symbol     { return &Symbol{Name: name} }
+func (s *Symbol) String() string        { return s.Name }
+func (s *Symbol) Loc() *syntax.Location { return s.Location }
 
 // Str is a node
 type Str struct {
 	Value    string
-	Location *token.Location
+	Location *syntax.Location
 }
 
-func NewStr(value string) *Str      { return &Str{Value: value} }
-func (s *Str) String() string       { return "\"" + s.Value + "\"" }
-func (s *Str) Loc() *token.Location { return s.Location }
+func NewStr(value string) *Str       { return &Str{Value: value} }
+func (s *Str) String() string        { return "\"" + s.Value + "\"" }
+func (s *Str) Loc() *syntax.Location { return s.Location }
 
 type Integer struct {
 	Value    int
-	Location *token.Location
+	Location *syntax.Location
 }
 
 func NewInteger(value int) *Integer { return &Integer{Value: value} }
@@ -91,12 +91,12 @@ func (x *Integer) String() string {
 	rep := strconv.FormatInt(int64(x.Value), 10)
 	return rep
 }
-func (x *Integer) Loc() *token.Location { return x.Location }
+func (x *Integer) Loc() *syntax.Location { return x.Location }
 
 type Invalid struct {
 	Value    string
-	Location *token.Location
+	Location *syntax.Location
 }
 
-func (x *Invalid) String() string       { return "INVALID<" + x.Value + ">" }
-func (x *Invalid) Loc() *token.Location { return x.Location }
+func (x *Invalid) String() string        { return "INVALID<" + x.Value + ">" }
+func (x *Invalid) Loc() *syntax.Location { return x.Location }

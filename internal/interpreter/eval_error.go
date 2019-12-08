@@ -3,19 +3,19 @@ package interpreter
 import (
 	"fmt"
 
-	"github.com/onlyafly/oakblue/internal/ast"
-	"github.com/onlyafly/oakblue/internal/token"
+	"github.com/onlyafly/oakblue/internal/cst"
+	"github.com/onlyafly/oakblue/internal/syntax"
 )
 
 // EvalError represents an error that occurs during evaluation.
 type EvalError struct {
 	SuperMessage string
 	Message      string
-	location     *token.Location
+	location     *syntax.Location
 }
 
 // NewEvalError returns a new EvalError
-func NewEvalError(superMessage, message string, location *token.Location) *EvalError {
+func NewEvalError(superMessage, message string, location *syntax.Location) *EvalError {
 	return &EvalError{superMessage, message, location}
 }
 
@@ -28,8 +28,8 @@ func (e *EvalError) Error() string {
 	return fmt.Sprintf("%v: %v", e.SuperMessage, e.Message)
 }
 
-func panicEvalError(n ast.Node, s string) {
-	var loc *token.Location
+func panicEvalError(n cst.Node, s string) {
+	var loc *syntax.Location
 	if n != nil {
 		loc = n.Loc()
 	}
@@ -37,8 +37,8 @@ func panicEvalError(n ast.Node, s string) {
 }
 
 /* TODO
-func panicApplicationError(n ast.Node, s string) {
-	var loc *token.Location
+func panicApplicationError(n cst.Node, s string) {
+	var loc *syntax.Location
 	if n != nil {
 		loc = n.Loc()
 	}

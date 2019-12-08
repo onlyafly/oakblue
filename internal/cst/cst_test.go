@@ -1,4 +1,4 @@
-package ast
+package cst
 
 import (
 	"testing"
@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProgram_String_OneStatement(t *testing.T) {
-	p := Program([]*Statement{
+func TestListing_String_OneStatement(t *testing.T) {
+	p := Listing([]*Statement{
 		NewStatement([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
@@ -22,8 +22,8 @@ func TestProgram_String_OneStatement(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestProgram_String_MultipleStatements(t *testing.T) {
-	p := Program([]*Statement{
+func TestListing_String_MultipleStatements(t *testing.T) {
+	p := Listing([]*Statement{
 		NewStatement([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),

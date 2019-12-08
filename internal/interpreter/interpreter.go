@@ -1,7 +1,7 @@
 package interpreter
 
 import (
-	"github.com/onlyafly/oakblue/internal/ast"
+	"github.com/onlyafly/oakblue/internal/cst"
 	"io"
 )
 
@@ -9,6 +9,6 @@ import (
 //TODO var readLine func() string
 
 // Eval a node
-func Eval(e Env, program ast.Program, w io.Writer, rl func() string) (result ast.Node, err error) {
-	return ast.NewStr("ert"), nil
+func Eval(e Env, program cst.Listing, w io.Writer, rl func() string) (result cst.Node, err error) {
+	return cst.NewStr("ert"), nil
 }
