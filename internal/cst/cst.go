@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/onlyafly/oakblue/internal/spec"
 	"github.com/onlyafly/oakblue/internal/syntax"
 )
 
@@ -51,15 +50,6 @@ func nodesToStringsWithFunc(nodes []Node, convert func(n Node) string) []string 
 	}
 	return strings
 }
-
-type Op struct {
-	Opcode   int
-	Location *syntax.Location
-}
-
-func NewOp(opcode int) *Op          { return &Op{Opcode: opcode} }
-func (o *Op) String() string        { return spec.OpcodeNames[o.Opcode] }
-func (o *Op) Loc() *syntax.Location { return o.Location }
 
 // Symbol is a node
 type Symbol struct {
