@@ -21,7 +21,7 @@ func TestAnalyze(t *testing.T) {
 		}),
 	})
 
-	actual, err := Analyze(input, syntax.NewErrorList())
+	actual, err := Analyze(input, syntax.NewErrorList("Syntax"))
 
 	if assert.NoError(t, err) {
 		expected := ast.NewProgram([]ast.Statement{
@@ -49,6 +49,6 @@ func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {
 		}),
 	})
 
-	_, err := Analyze(input, syntax.NewErrorList())
+	_, err := Analyze(input, syntax.NewErrorList("Syntax"))
 	assert.Error(t, err)
 }

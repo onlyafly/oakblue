@@ -107,7 +107,7 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		return
 	}
 
-	errorList := syntax.NewErrorList()
+	errorList := syntax.NewErrorList("Syntax")
 	listing, _ := parser.Parse(input, sourceFilePath, errorList) // the error return is ignored because it will be combined with the analyzer's errors
 	program, err := analyzer.Analyze(listing, errorList)
 
@@ -125,7 +125,7 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		verify(t, sourceFilePath, input, expected, err.Error())
 	}
 
-	actual, emitError := emitter.Emit(program)
+	actual, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
 	if emitError != nil {
 		return
 	}
@@ -164,7 +164,7 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 	expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
 	expected := strings.TrimSpace(expectedWithUntrimmed)
 
-	program, err := parser.Parse(input, sourceFilePath, syntax.NewErrorList())
+	program, err := parser.Parse(input, sourceFilePath, syntax.NewErrorList("Syntax"))
 	if err != nil {
 		verify(t, sourceFilePath, input, expected, err.Error())
 	} else {
