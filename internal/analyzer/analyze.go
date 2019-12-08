@@ -8,9 +8,7 @@ import (
 	"github.com/onlyafly/oakblue/internal/syntax"
 )
 
-func Analyze(input cst.Listing) (*ast.Program, error) {
-	errorList := syntax.NewErrorList()
-
+func Analyze(input cst.Listing, errorList *syntax.ErrorList) (*ast.Program, error) {
 	a := &analyzer{errors: errorList}
 	statements := a.analyzeStatements(input)
 

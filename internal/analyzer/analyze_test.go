@@ -6,6 +6,7 @@ import (
 	"github.com/onlyafly/oakblue/internal/ast"
 	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/spec"
+	"github.com/onlyafly/oakblue/internal/syntax"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +21,7 @@ func TestAnalyze(t *testing.T) {
 		}),
 	})
 
-	actual, err := Analyze(input)
+	actual, err := Analyze(input, syntax.NewErrorList())
 
 	if assert.NoError(t, err) {
 		expected := ast.NewProgram([]ast.Statement{
@@ -48,6 +49,6 @@ func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {
 		}),
 	})
 
-	_, err := Analyze(input)
+	_, err := Analyze(input, syntax.NewErrorList())
 	assert.Error(t, err)
 }

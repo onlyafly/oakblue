@@ -9,9 +9,8 @@ import (
 
 // Parse accepts a string and the name of the source of the code, and returns
 // the Oakblue nodes therein, along with a list of any errors found.
-func Parse(input string, sourceName string) (cst.Listing, error) {
+func Parse(input string, sourceName string, errorList *syntax.ErrorList) (cst.Listing, error) {
 	s, _ := Scan(sourceName, input)
-	errorList := syntax.NewErrorList()
 	s.errorHandler = func(t Token, message string) {
 		errorList.Add(t.Loc, message)
 	}

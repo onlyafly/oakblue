@@ -7,10 +7,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/onlyafly/oakblue/internal/analyzer"
 	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/emitter"
 	"github.com/onlyafly/oakblue/internal/interpreter"
 	"github.com/onlyafly/oakblue/internal/parser"
+	"github.com/onlyafly/oakblue/internal/syntax"
 	"github.com/onlyafly/oakblue/internal/util"
 )
 
@@ -105,13 +107,12 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		return
 	}
 
-	programCst, err := parser.Parse(input, sourceFilePath)
+	errorList := syntax.NewErrorList()
+	listing, _ := parser.Parse(input, sourceFilePath, errorList) // the error return is ignored because it will be combined with the analyzer's errors
+	program, err := analyzer.Analyze(listing, errorList)
 
 	if err != nil {
-		// There were errors during the assembling, so look at the errors in the errors file
-
 		outputFilePath := sourceDirPart + testName + ".err"
-
 		expectedRaw, errOut := util.ReadTextFile(outputFilePath)
 		if errOut != nil {
 			expectedRaw = "SUITE_TEST FOUND NO .ERR FILE AT <" + outputFilePath + ">"
@@ -122,24 +123,22 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		expected := strings.TrimSpace(expectedWithUntrimmed)
 
 		verify(t, sourceFilePath, input, expected, err.Error())
-	} else {
-		// There were no errors!
-
-		actual, emitError := emitter.Emit(programCst)
-		if emitError != nil {
-			return
-		}
-
-		outputFilePath := sourceDirPart + testName + ".bin"
-
-		expected, errOut := util.ReadBinaryFile(outputFilePath)
-		if errOut != nil {
-			t.Errorf("Error reading file <" + outputFilePath + ">: " + errOut.Error())
-			return
-		}
-
-		verifyBinary(t, sourceFilePath, input, expected, actual)
 	}
+
+	actual, emitError := emitter.Emit(program)
+	if emitError != nil {
+		return
+	}
+
+	outputFilePath := sourceDirPart + testName + ".bin"
+
+	expected, errOut := util.ReadBinaryFile(outputFilePath)
+	if errOut != nil {
+		t.Errorf("Error reading file <" + outputFilePath + ">: " + errOut.Error())
+		return
+	}
+
+	verifyBinary(t, sourceFilePath, input, expected, actual)
 }
 
 func testExecutingFile(sourceFilePath string, t *testing.T) {
@@ -165,7 +164,7 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 	expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
 	expected := strings.TrimSpace(expectedWithUntrimmed)
 
-	program, err := parser.Parse(input, sourceFilePath)
+	program, err := parser.Parse(input, sourceFilePath, syntax.NewErrorList())
 	if err != nil {
 		verify(t, sourceFilePath, input, expected, err.Error())
 	} else {
