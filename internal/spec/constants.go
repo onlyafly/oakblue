@@ -18,6 +18,19 @@ const (
 	MaxRegisters
 )
 
+var RegisterNames = [...]string{
+	"R0",
+	"R1",
+	"R2",
+	"R3",
+	"R4",
+	"R5",
+	"R6",
+	"R7",
+	"PC",
+	"COND",
+}
+
 // Each instruction is 16 bits long, with the left 4 bits storing the opcode. The rest of the bits
 // are used to store the parameters.
 const (
