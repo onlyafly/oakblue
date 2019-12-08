@@ -4,13 +4,11 @@ import (
 	"strconv"
 
 	"github.com/onlyafly/oakblue/internal/ast"
-	"github.com/onlyafly/oakblue/internal/spec"
 )
 
 // Parse accepts a string and the name of the source of the code, and returns
 // the Oakblue nodes therein, along with a list of any errors found.
-func Parse(input string, sourceName string) (ast.Program, ParserErrorList) {
-	/* TODO readd this
+func Parse(input string, sourceName string) (ast.Program, error) {
 	s, _ := Scan(sourceName, input)
 	errorList := NewParserErrorList()
 	s.errorHandler = func(t Token, message string) {
@@ -18,18 +16,13 @@ func Parse(input string, sourceName string) (ast.Program, ParserErrorList) {
 	}
 
 	p := &parser{s: s}
-	nodes := parseNodes(p, &errorList)
+	statements := parseStatements(p, errorList)
 
 	if errorList.Len() > 0 {
 		return nil, errorList
 	}
-	*/
 
-	// TODO remove this
-	var program ast.Program
-	program = append(program, ast.NewStatement([]ast.Node{ast.NewOp(spec.OP_ADD)}))
-
-	return program, nil
+	return ast.Program(statements), nil
 }
 
 ////////// Parser
@@ -76,12 +69,20 @@ func (p *parser) inputEmpty() bool {
 
 ////////// Parsing
 
-func parseNodes(p *parser, errors *ParserErrorList) []ast.Node {
+func parseStatements(p *parser, errors *ParserErrorList) []*ast.Statement {
+	var statements []*ast.Statement
+	for !p.inputEmpty() {
+		statements = append(statements, parseStatement(p, errors))
+	}
+	return statements
+}
+
+func parseStatement(p *parser, errors *ParserErrorList) *ast.Statement {
 	var nodes []ast.Node
 	for !p.inputEmpty() {
 		nodes = append(nodes, parseNode(p, errors))
 	}
-	return nodes
+	return ast.NewStatement(nodes)
 }
 
 func parseNode(p *parser, errors *ParserErrorList) ast.Node {

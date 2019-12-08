@@ -26,14 +26,16 @@ func (pe *ParserError) Error() string {
 
 // ParserErrorList is a list of ParserError pointers.
 // Implements the error interface.
-type ParserErrorList []*ParserError
+type ParserErrorList struct {
+	Errors []*ParserError
+}
 
-func NewParserErrorList() ParserErrorList {
-	return make(ParserErrorList, 0)
+func NewParserErrorList() *ParserErrorList {
+	return &ParserErrorList{Errors: make([]*ParserError, 0)}
 }
 
 func (p *ParserErrorList) Add(loc *token.Location, msg string) {
-	*p = append(*p, &ParserError{loc, msg})
+	p.Errors = append(p.Errors, &ParserError{loc, msg})
 }
 
 func (p ParserErrorList) Error() string {
@@ -41,14 +43,14 @@ func (p ParserErrorList) Error() string {
 }
 
 func (p ParserErrorList) Len() int {
-	return len(p)
+	return len(p.Errors)
 }
 
 func (p ParserErrorList) String() (s string) {
-	for i, e := range p {
+	for i, e := range p.Errors {
 		s += e.Error()
 
-		if i != len(p)-1 {
+		if i != len(p.Errors)-1 {
 			s += "\n"
 		}
 	}

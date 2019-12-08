@@ -105,24 +105,23 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		return
 	}
 
-	programAst, errors := parser.Parse(input, sourceFilePath)
+	programAst, err := parser.Parse(input, sourceFilePath)
 
-	if errors.Len() != 0 {
+	if err != nil {
 		// There were errors during the assembling, so look at the errors in the errors file
 
 		outputFilePath := sourceDirPart + testName + ".err"
 
 		expectedRaw, errOut := util.ReadTextFile(outputFilePath)
 		if errOut != nil {
-			t.Errorf("Error reading file <" + outputFilePath + ">: " + errOut.Error())
-			return
+			expectedRaw = "SUITE_TEST FOUND NO .ERR FILE AT <" + outputFilePath + ">"
 		}
 
 		// Remove any carriage return line endings from .out file
 		expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
 		expected := strings.TrimSpace(expectedWithUntrimmed)
 
-		verify(t, sourceFilePath, input, expected, errors.String())
+		verify(t, sourceFilePath, input, expected, err.Error())
 	} else {
 		// There were no errors!
 
@@ -166,9 +165,9 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 	expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
 	expected := strings.TrimSpace(expectedWithUntrimmed)
 
-	program, errors := parser.Parse(input, sourceFilePath)
-	if errors.Len() != 0 {
-		verify(t, sourceFilePath, input, expected, errors.String())
+	program, err := parser.Parse(input, sourceFilePath)
+	if err != nil {
+		verify(t, sourceFilePath, input, expected, err.Error())
 	} else {
 		e := interpreter.NewTopLevelMapEnv()
 
@@ -205,7 +204,7 @@ func verify(t *testing.T, testCaseName, input, expected, actual string) {
 				"===== ACTUAL\n%v\n"+
 				"===== END\n",
 			testCaseName,
-			input,
+			strings.TrimSpace(input),
 			expected,
 			actual)
 	}
