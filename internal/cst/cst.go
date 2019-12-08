@@ -33,6 +33,12 @@ func NewLine(nodes []Node) *Line { return &Line{Nodes: nodes} }
 func (x *Line) String() string {
 	return strings.Join(nodesToStrings(x.Nodes), " ")
 }
+func (x *Line) Loc() *syntax.Location {
+	if len(x.Nodes) > 0 {
+		return x.Nodes[0].Loc()
+	}
+	return &syntax.Location{}
+}
 
 // Node represents a parsed node.
 type Node interface {

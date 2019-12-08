@@ -1,158 +1,125 @@
 package analyzer
 
-/*
 import (
-	"strconv"
-
+	"fmt"
+	"github.com/onlyafly/oakblue/internal/ast"
 	"github.com/onlyafly/oakblue/internal/cst"
+	"github.com/onlyafly/oakblue/internal/spec"
 	"github.com/onlyafly/oakblue/internal/syntax"
 )
-*/
 
-/*
-func Analyze(input *cst.Listing) (ast.Listing, error) {
-	s, _ := Scan(sourceName, input)
-	errorList := Newsyntax.ErrorList()
-	s.errorHandler = func(t Token, message string) {
-		errorList.Add(t.Loc, message)
-	}
+func Analyze(input cst.Listing) (*ast.Program, error) {
+	errorList := syntax.NewErrorList()
 
-	p := &parser{s: s}
-	lines := parseLines(p, errorList)
+	a := &analyzer{errors: errorList}
+	statements := a.analyzeStatements(input)
 
 	if errorList.Len() > 0 {
 		return nil, errorList
 	}
 
-	return cst.Listing(lines), nil
+	return ast.NewProgram(statements), nil
 }
 
-////////// Parser
-
-type parser struct {
-	s              *Scanner
-	lookahead      [2]Token // two-token lookahead
-	lookaheadCount int
+type analyzer struct {
+	errors *syntax.ErrorList
 }
 
-func (p *parser) next() Token {
-	if p.lookaheadCount > 0 {
-		p.lookaheadCount--
-	} else {
-		p.lookahead[0] = <-p.s.Tokens
-	}
-	return p.lookahead[p.lookaheadCount]
-}
+func (a *analyzer) analyzeStatements(l cst.Listing) []ast.Statement {
+	var statements []ast.Statement
 
-
-func (p *parser) peek() Token {
-	if p.lookaheadCount > 0 {
-		return p.lookahead[p.lookaheadCount-1]
+	for _, line := range l {
+		statements = append(statements, a.analyzeStatement(line))
 	}
 
-	p.lookaheadCount = 1
-	p.lookahead[0] = <-p.s.Tokens
-	return p.lookahead[0]
+	return statements
 }
 
-func (p *parser) inputEmpty() bool {
-	c := p.peek().Code
-	if c == TcEOF || c == TcError {
-		return true
-	}
+func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
+	firstNode := l.Nodes[0]
 
-	return false
-}
-
-func (p *parser) skipEmptyLines() {
-	for p.peek().Code == TcNewline {
-		p.next()
-	}
-}
-
-////////// Parsing
-
-func parseLines(p *parser, errors *syntax.ErrorList) []*cst.Line {
-	var lines []*cst.Line
-
-	p.skipEmptyLines()
-
-	for !p.inputEmpty() {
-		lines = append(lines, parseLine(p, errors))
-	}
-	return lines
-}
-
-func parseLine(p *parser, errors *syntax.ErrorList) *cst.Line {
-	var nodes []cst.Node
-
-	for !p.inputEmpty() {
-		if p.peek().Code == TcNewline {
-			p.next()
-			break
+	switch v := firstNode.(type) {
+	case *cst.Symbol:
+		switch v.Name {
+		case "ADD":
+			return a.analyzeAddInstruction(l)
+		default:
+			a.errors.Add(v.Loc(), "unrecognized operation name")
 		}
-		nodes = append(nodes, parseNode(p, errors))
-	}
-	return cst.NewLine(nodes)
-}
-
-func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
-	token := p.next()
-
-	switch token.Code {
-	case TcError:
-		errors.Add(token.Loc, "Error token: "+token.String())
-	case TcRightParen:
-		errors.Add(token.Loc, "Unbalanced parentheses")
-	case TcNumber:
-		return parseInteger(token, errors)
-	case TcSymbol:
-		return parseSymbol(token, errors)
-	case TcString:
-		return parseString(token, errors)
-	case TcChar:
-		//TODO delete: return parseChar(token, errors)
-	case TcSingleQuote:
-		return parseQuote(p, errors)
 	default:
-		errors.Add(token.Loc, "Unrecognized token: "+token.String())
+		a.errors.Add(v.Loc(), "unrecognized statement syntax")
 	}
 
-	return &cst.Invalid{Location: token.Loc}
+	return &ast.InvalidStatement{Location: firstNode.Loc(), MoreInformation: l.String()}
 }
 
-func parseQuote(p *parser, errors *syntax.ErrorList) cst.Node {
-	return &cst.Invalid{}
-}
-
-func parseInteger(t Token, errors *syntax.ErrorList) *cst.Integer {
-	x, err := strconv.ParseInt(t.Value, 10, 32)
-
-	if err != nil {
-		errors.Add(t.Loc, "Invalid integer: "+t.Value)
-		return &cst.Integer{Value: 0, Location: t.Loc}
+func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 3) {
+		return &ast.InvalidStatement{}
 	}
 
-	return &cst.Integer{Value: int(x), Location: t.Loc}
-}
+	dr := a.analyzeRegister(l.Nodes[1])
+	sr1 := a.analyzeRegister(l.Nodes[2])
 
-func parseSymbol(t Token, errors *syntax.ErrorList) cst.Node {
-	if t.Value == "nil" {
-		return &cst.Invalid{Location: t.Loc}
+	switch arg3 := l.Nodes[3].(type) {
+	case *cst.Symbol:
+		sr2 := a.analyzeRegister(arg3)
+		return &ast.Instruction{
+			Opcode: spec.OP_ADD,
+			Dr:     dr,
+			Sr1:    sr1,
+			Mode:   0,
+			Sr2:    sr2,
+		}
+	case *cst.Integer:
+		return &ast.Instruction{
+			Opcode: spec.OP_ADD,
+			Dr:     dr,
+			Sr1:    sr1,
+			Mode:   1,
+			Imm5:   arg3.Value,
+		}
+	default:
+		a.errors.Add(arg3.Loc(), "expected register or integer, got: "+arg3.String())
 	}
-	return &cst.Symbol{Name: t.Value, Location: t.Loc}
+
+	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 }
 
-func parseString(t Token, errors *syntax.ErrorList) *cst.Str {
-	content := t.Value[1 : len(t.Value)-1]
-	return &cst.Str{Value: content, Location: t.Loc}
-}
-
-func ensureSymbol(n cst.Node) *cst.Symbol {
-	if v, ok := n.(*cst.Symbol); ok {
-		return v
+func (a *analyzer) analyzeRegister(n cst.Node) int {
+	switch v := n.(type) {
+	case *cst.Symbol:
+		switch v.Name {
+		case "R0":
+			return spec.R_R0
+		case "R1":
+			return spec.R_R0
+		case "R2":
+			return spec.R_R0
+		case "R3":
+			return spec.R_R0
+		case "R4":
+			return spec.R_R0
+		case "R5":
+			return spec.R_R0
+		case "R6":
+			return spec.R_R0
+		case "R7":
+			return spec.R_R0
+		default:
+			a.errors.Add(v.Loc(), "expected register, got: "+v.Name)
+		}
+	default:
+		a.errors.Add(v.Loc(), "expected symbol, got: "+v.String())
 	}
 
-	panic("Expected symbol: " + n.String())
+	return 0
 }
-*/
+
+func (a *analyzer) ensureLineArgs(l *cst.Line, argCount int) bool {
+	if len(l.Nodes) != argCount+1 {
+		a.errors.Add(l.Loc(), fmt.Sprintf("expected %d arguments, got: %d", argCount, len(l.Nodes)-1))
+		return false
+	}
+	return true
+}

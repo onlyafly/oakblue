@@ -61,3 +61,11 @@ func (x *Instruction) String() string {
 }
 
 func (x *Instruction) Loc() *syntax.Location { return x.Location }
+
+type InvalidStatement struct {
+	MoreInformation string
+	Location        *syntax.Location
+}
+
+func (x *InvalidStatement) String() string        { return "<INVALID STATEMENT: " + x.MoreInformation + ">" }
+func (x *InvalidStatement) Loc() *syntax.Location { return x.Location }
