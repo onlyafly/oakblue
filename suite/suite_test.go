@@ -1,4 +1,4 @@
-package test
+package suite
 
 import (
 	"bytes"
@@ -8,17 +8,17 @@ import (
 	"testing"
 
 	"github.com/onlyafly/oakblue/internal/analyzer"
-	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/emitter"
-	"github.com/onlyafly/oakblue/internal/interpreter"
 	"github.com/onlyafly/oakblue/internal/parser"
 	"github.com/onlyafly/oakblue/internal/syntax"
 	"github.com/onlyafly/oakblue/internal/util"
+	"github.com/onlyafly/oakblue/internal/vm"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
-	assemblerSuiteTestDataDir = "test/assembler_suite"
-	vmSuiteTestDataDir        = "test/vm_suite"
+	assemblerSuiteTestDataDir = "suite/assembler_suite"
+	vmSuiteTestDataDir        = "suite/vm_suite"
 	baseDir                   = ".."
 	fileExtPattern            = "*.asm"
 )
@@ -146,52 +146,55 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 	parts := strings.Split(sourceFileNamePart, ".")
 	testName := parts[0]
 
-	outputFilePath := sourceDirPart + testName + ".out"
-
 	input, errIn := util.ReadTextFile(sourceFilePath)
 	if errIn != nil {
 		t.Errorf("Error reading file <" + sourceFilePath + ">: " + errIn.Error())
 		return
 	}
 
-	expectedRaw, errOut := util.ReadTextFile(outputFilePath)
+	errorList := syntax.NewErrorList("Syntax")
+	listing, _ := parser.Parse(input, sourceFilePath, errorList) // the error return is ignored because it will be combined with the analyzer's errors
+	program, err := analyzer.Analyze(listing, errorList)
+
+	if err != nil {
+		outputFilePath := sourceDirPart + testName + ".err"
+		expectedRaw, errOut := util.ReadTextFile(outputFilePath)
+		if errOut != nil {
+			expectedRaw = "SUITE_TEST FOUND NO .ERR FILE AT <" + outputFilePath + ">"
+		}
+
+		// Remove any carriage return line endings from .out file
+		expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
+		expected := strings.TrimSpace(expectedWithUntrimmed)
+
+		verify(t, sourceFilePath, input, expected, err.Error())
+	}
+
+	machineCode, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
+	assert.NoError(t, emitError)
+
+	m := vm.NewMachine()
+	m.LoadMemory(machineCode)
+	m.Execute()
+	registerDump := m.RegisterDump()
+
+	regFilePath := sourceDirPart + testName + ".reg"
+	expectedRegisterDump, errOut := util.ReadTextFile(regFilePath)
 	if errOut != nil {
-		t.Errorf("Error reading file <" + outputFilePath + ">: " + errOut.Error())
+		t.Errorf("Error reading file <" + regFilePath + ">: " + errOut.Error())
 		return
 	}
+	verify(t, sourceFilePath, input, expectedRegisterDump, registerDump)
 
-	// Remove any carriage return line endings from .out file
-	expectedWithUntrimmed := strings.Replace(expectedRaw, "\r", "", -1)
-	expected := strings.TrimSpace(expectedWithUntrimmed)
-
-	program, err := parser.Parse(input, sourceFilePath, syntax.NewErrorList("Syntax"))
-	if err != nil {
-		verify(t, sourceFilePath, input, expected, err.Error())
-	} else {
-		e := interpreter.NewTopLevelMapEnv()
-
-		var outputBuffer bytes.Buffer
-
-		dummyReadLine := func() string {
-			return "text from dummy read line"
-		}
-
-		var result cst.Node
-		var evalError error
-
-		result, evalError = interpreter.Eval(e, program, &outputBuffer, dummyReadLine)
-		actual := (&outputBuffer).String()
-
-		if evalError == nil {
-			//DEBUG fmt.Printf("RESULT(%v): %v\n", sourceFilePath, result)
-			if result != nil {
-				actual = actual + result.String()
-			}
-		} else {
-			actual = actual + evalError.Error()
+	/*
+		outPath := sourceDirPart + testName + ".out"
+		expected, errOut := util.ReadTextFile(outPath)
+		if errOut != nil {
+			t.Errorf("Error reading file <" + outPath + ">: " + errOut.Error())
+			return
 		}
 		verify(t, sourceFilePath, input, expected, actual)
-	}
+	*/
 }
 
 func verify(t *testing.T, testCaseName, input, expected, actual string) {
