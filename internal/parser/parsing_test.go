@@ -22,7 +22,7 @@ func TestParse_Simple(t *testing.T) {
 	}
 }
 
-func TestParse_TwoStatements(t *testing.T) {
+func TestParse_TwoLines(t *testing.T) {
 	input := `
 	ADD R0 R0 1
 	ADD R1 R1 1

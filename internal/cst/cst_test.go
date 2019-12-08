@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListing_String_OneStatement(t *testing.T) {
-	p := Listing([]*Statement{
-		NewStatement([]Node{
+func TestListing_String_OneLine(t *testing.T) {
+	p := Listing([]*Line{
+		NewLine([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
@@ -22,21 +22,21 @@ func TestListing_String_OneStatement(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestListing_String_MultipleStatements(t *testing.T) {
-	p := Listing([]*Statement{
-		NewStatement([]Node{
+func TestListing_String_MultipleLines(t *testing.T) {
+	p := Listing([]*Line{
+		NewLine([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
 			NewInteger(1),
 		}),
-		NewStatement([]Node{
+		NewLine([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
 			NewInteger(1),
 		}),
-		NewStatement([]Node{
+		NewLine([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),

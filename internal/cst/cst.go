@@ -8,29 +8,29 @@ import (
 	"github.com/onlyafly/oakblue/internal/syntax"
 )
 
-type Listing []*Statement
+type Listing []*Line
 
 func (l *Listing) String() string {
-	return strings.Join(statementsToStrings(*l), "\n")
+	return strings.Join(linesToStrings(*l), "\n")
 }
 
-type Statement struct {
+type Line struct {
 	Nodes []Node
 }
 
-func statementsToStrings(statements []*Statement) []string {
-	return statementsToStringsWithFunc(statements, func(x *Statement) string { return x.String() })
+func linesToStrings(lines []*Line) []string {
+	return linesToStringsWithFunc(lines, func(x *Line) string { return x.String() })
 }
-func statementsToStringsWithFunc(statements []*Statement, convert func(x *Statement) string) []string {
-	strings := make([]string, len(statements))
-	for i, x := range statements {
+func linesToStringsWithFunc(lines []*Line, convert func(x *Line) string) []string {
+	strings := make([]string, len(lines))
+	for i, x := range lines {
 		strings[i] = convert(x)
 	}
 	return strings
 }
 
-func NewStatement(nodes []Node) *Statement { return &Statement{Nodes: nodes} }
-func (x *Statement) String() string {
+func NewLine(nodes []Node) *Line { return &Line{Nodes: nodes} }
+func (x *Line) String() string {
 	return strings.Join(nodesToStrings(x.Nodes), " ")
 }
 

@@ -18,13 +18,13 @@ func Analyze(input *cst.Listing) (ast.Listing, error) {
 	}
 
 	p := &parser{s: s}
-	statements := parseStatements(p, errorList)
+	lines := parseLines(p, errorList)
 
 	if errorList.Len() > 0 {
 		return nil, errorList
 	}
 
-	return cst.Listing(statements), nil
+	return cst.Listing(lines), nil
 }
 
 ////////// Parser
@@ -72,18 +72,18 @@ func (p *parser) skipEmptyLines() {
 
 ////////// Parsing
 
-func parseStatements(p *parser, errors *syntax.ErrorList) []*cst.Statement {
-	var statements []*cst.Statement
+func parseLines(p *parser, errors *syntax.ErrorList) []*cst.Line {
+	var lines []*cst.Line
 
 	p.skipEmptyLines()
 
 	for !p.inputEmpty() {
-		statements = append(statements, parseStatement(p, errors))
+		lines = append(lines, parseLine(p, errors))
 	}
-	return statements
+	return lines
 }
 
-func parseStatement(p *parser, errors *syntax.ErrorList) *cst.Statement {
+func parseLine(p *parser, errors *syntax.ErrorList) *cst.Line {
 	var nodes []cst.Node
 
 	for !p.inputEmpty() {
@@ -93,7 +93,7 @@ func parseStatement(p *parser, errors *syntax.ErrorList) *cst.Statement {
 		}
 		nodes = append(nodes, parseNode(p, errors))
 	}
-	return cst.NewStatement(nodes)
+	return cst.NewLine(nodes)
 }
 
 func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
