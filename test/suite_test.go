@@ -1,4 +1,4 @@
-package suite
+package test
 
 import (
 	"bytes"
@@ -17,24 +17,28 @@ import (
 )
 
 const (
-	assemblerSuiteTestDataDir = "suite/assembler_suite"
-	vmSuiteTestDataDir        = "suite/vm_suite"
-	baseDir                   = ".."
+	assemblerSuiteTestDataDir = "test/testdata_assembler"
+	vmSuiteTestDataDir        = "test/testdata_vm"
 	fileExtPattern            = "*.asm"
 )
+
+func TestMain(m *testing.M) {
+	// We set the base directory so that the test cases can use paths that make
+	// sense. If this is not set, the current working directory while the tests
+	// run will be "test"
+	err := os.Chdir("..")
+	if err != nil {
+		panic("Error changing directory to the base directory: " + err.Error())
+	}
+
+	// NOTE: If this is not here, the tests will not run and they will not exit
+	os.Exit(m.Run())
+}
 
 // TestAssemblerSuite runs the entire language test suite
 func TestAssemblerSuite(t *testing.T) {
 
-	// We set the base directory so that the test cases can use paths that make
-	// sense. If this is not set, the current working directory while the tests
-	// run will be "test"
-	err := os.Chdir(baseDir)
-	if err != nil {
-		t.Errorf("Error changing directory to <" + baseDir + ">: " + err.Error())
-	}
-
-	err = filepath.Walk(assemblerSuiteTestDataDir, func(fp string, fi os.FileInfo, err error) error {
+	err := filepath.Walk(assemblerSuiteTestDataDir, func(fp string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return nil // Can't visit this node, but continue walking elsewhere
 		}
@@ -62,15 +66,7 @@ func TestAssemblerSuite(t *testing.T) {
 
 func TestExecutingSuite(t *testing.T) {
 
-	// We set the base directory so that the test cases can use paths that make
-	// sense. If this is not set, the current working directory while the tests
-	// run will be "test"
-	err := os.Chdir(baseDir)
-	if err != nil {
-		t.Errorf("Error changing directory to <" + baseDir + ">: " + err.Error())
-	}
-
-	err = filepath.Walk(vmSuiteTestDataDir, func(fp string, fi os.FileInfo, err error) error {
+	err := filepath.Walk(vmSuiteTestDataDir, func(fp string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return nil // Can't visit this node, but continue walking elsewhere
 		}
