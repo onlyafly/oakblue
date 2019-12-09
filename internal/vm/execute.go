@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/onlyafly/oakblue/internal/spec"
 )
@@ -30,11 +31,23 @@ func NewMachine() *Machine {
 }
 
 func (m *Machine) RegisterDump() string {
-	return fmt.Sprintf("regs=%#v", m.regs)
+	var b strings.Builder
+
+	for i, reg := range m.regs {
+		if i == 8 {
+			b.WriteString(fmt.Sprintf("PC=%#v ", reg))
+		} else if i == 9 {
+			b.WriteString(fmt.Sprintf("COND=%#v", reg))
+		} else {
+			b.WriteString(fmt.Sprintf("R%d=%#v ", i, reg))
+		}
+	}
+
+	return b.String()
 }
 
-func (m *Machine) LoadMemory(data []byte) {
-	im := 0
+func (m *Machine) LoadMemory(data []byte, loadAddress uint16) {
+	im := loadAddress
 	for id := 0; id+1 < len(data); id += 2 {
 		m.mem[im] = binary.BigEndian.Uint16(data[id : id+2])
 		im++
@@ -48,13 +61,14 @@ func (m *Machine) Execute() {
 
 	running := true
 	for running {
-		m.regs[spec.R_PC]++
 
+		// ORDERING: The PC must only be incremented after its use is complete
 		if m.regs[spec.R_PC] >= memory_size {
 			return // end of memory reached
 		}
-
 		instr := m.readMemory(m.regs[spec.R_PC])
+		m.regs[spec.R_PC]++
+
 		op := instr >> 12
 
 		switch op {

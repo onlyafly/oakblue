@@ -170,7 +170,7 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 	assert.NoError(t, emitError)
 
 	m := vm.NewMachine()
-	m.LoadMemory(machineCode)
+	m.LoadMemory(machineCode, 0x3000)
 	m.Execute()
 	registerDump := m.RegisterDump()
 

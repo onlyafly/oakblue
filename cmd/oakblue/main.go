@@ -7,7 +7,7 @@ import (
 
 func main() {
 	m := vm.NewMachine()
-	m.LoadMemory([]byte{16, 33})
+	m.LoadMemory([]byte{16, 33}, 0x3000)
 	m.Execute()
 	fmt.Println(m.RegisterDump())
 }
