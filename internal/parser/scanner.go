@@ -3,6 +3,8 @@ See "Lexical Scanning in Go" by Rob Pike for the basic theory behind this
 module: http://www.youtube.com/watch?v=HxaD_trXwRE
 */
 
+// TODO: Remove the non-ASM code from the scanner (there's still some left from Lisp related stuff)
+
 package parser
 
 import (
