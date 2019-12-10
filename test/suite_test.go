@@ -164,10 +164,13 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 		expected := strings.TrimSpace(expectedWithUntrimmed)
 
 		verify(t, sourceFilePath, input, expected, err.Error())
+		return
 	}
 
 	machineCode, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
-	assert.NoError(t, emitError)
+	if !assert.NoError(t, emitError) {
+		return
+	}
 
 	m := vm.NewMachine()
 	m.LoadMemory(machineCode, 0x3000)

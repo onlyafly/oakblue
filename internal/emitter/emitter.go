@@ -8,7 +8,6 @@ import (
 	"github.com/onlyafly/oakblue/internal/ast"
 	"github.com/onlyafly/oakblue/internal/spec"
 	"github.com/onlyafly/oakblue/internal/syntax"
-	"github.com/onlyafly/oakblue/internal/util"
 )
 
 // Emit emits an assembled binary image
@@ -51,7 +50,28 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			x |= inst.Sr2
 		case 1:
 			x |= 1 << 5
-			x |= inst.Imm5 & util.Mask_11111
+			x |= inst.Imm5 & 0b11111
+		default:
+			m.errors.Add(inst.Loc(), "unknown mode")
+		}
+
+		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
+		if err != nil {
+			m.errors.Add(inst.Loc(), err.Error())
+		}
+	case spec.OP_AND:
+		var x int
+		x = spec.OP_AND << 12
+		x |= inst.Dr << 9
+		x |= inst.Sr1 << 6
+
+		switch inst.Mode {
+		case 0:
+			x |= 0 << 5
+			x |= inst.Sr2
+		case 1:
+			x |= 1 << 5
+			x |= inst.Imm5 & 0b11111
 		default:
 			m.errors.Add(inst.Loc(), "unknown mode")
 		}
@@ -61,6 +81,6 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			m.errors.Add(inst.Loc(), err.Error())
 		}
 	default:
-		m.errors.Add(inst.Loc(), "unrecognized opcode")
+		m.errors.Add(inst.Loc(), fmt.Sprintf("unrecognized opcode: 0b%b", inst.Opcode))
 	}
 }

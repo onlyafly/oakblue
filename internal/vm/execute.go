@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/onlyafly/oakblue/internal/spec"
-	"github.com/onlyafly/oakblue/internal/util"
 )
 
 const (
@@ -78,51 +77,72 @@ func (m *Machine) Execute() {
 			//  02-00  (if mode=0) SR2: sum register 2
 			//  04-00  (if mode=1) IMM5: immediate value, sign extended
 
-			dr := (instr >> 9) & util.Mask_111
-			sr1 := (instr >> 6) & util.Mask_111
-			mode := (instr >> 5) & util.Mask_1
+			dr := (instr >> 9) & 0b111
+			sr1 := (instr >> 6) & 0b111
+			mode := (instr >> 5) & 0b1
 
 			if mode == 1 {
-				imm5 := signExtend(instr&util.Mask_11111, 5)
+				imm5 := signExtend(instr&0b11111, 5)
 				m.regs[dr] = m.regs[sr1] + imm5
 			} else {
-				sr2 := instr & util.Mask_111
+				sr2 := instr & 0b111
 				m.regs[dr] = m.regs[sr1] + m.regs[sr2]
 			}
 
 			m.updateFlags(dr)
 		case spec.OP_AND:
-			// FIXME
+			// AND
+			//  15-12  opcode
+			//  11-09  DR: destination register
+			//  08-06  SR1: sum register 1
+			//  05     mode: 0 = register, 1 = immediate
+			//  04-03  (if mode=0) 00
+			//  02-00  (if mode=0) SR2: sum register 2
+			//  04-00  (if mode=1) IMM5: immediate value, sign extended
+
+			dr := (instr >> 9) & 0b111
+			sr1 := (instr >> 6) & 0b111
+			mode := (instr >> 5) & 0b1
+
+			if mode == 1 {
+				imm5 := signExtend(instr&0b11111, 5)
+				m.regs[dr] = m.regs[sr1] & imm5
+			} else {
+				sr2 := instr & 0b111
+				m.regs[dr] = m.regs[sr1] & m.regs[sr2]
+			}
+
+			m.updateFlags(dr)
 		case spec.OP_NOT:
-			// FIXME
+			panic("opcode not yet implemented: NOT")
 		case spec.OP_BR:
-			// FIXME
+			panic("opcode not yet implemented: BR. KEVIN: YOU NEED TO IMPLEMENT THE HALT TRAP")
 		case spec.OP_JMP:
-			// FIXME
+			panic("opcode not yet implemented: JMP")
 		case spec.OP_JSR:
-			// FIXME
+			panic("opcode not yet implemented: JSR")
 		case spec.OP_LD:
-			// FIXME
+			panic("opcode not yet implemented: LD")
 		case spec.OP_LDI:
-			// FIXME
+			panic("opcode not yet implemented: LDI")
 		case spec.OP_LDR:
-			// FIXME
+			panic("opcode not yet implemented: LDR")
 		case spec.OP_LEA:
-			// FIXME
+			panic("opcode not yet implemented: LEA")
 		case spec.OP_ST:
-			// FIXME
+			panic("opcode not yet implemented: ST")
 		case spec.OP_STI:
-			// FIXME
+			panic("opcode not yet implemented: STI")
 		case spec.OP_STR:
-			// FIXME
+			panic("opcode not yet implemented: STR")
 		case spec.OP_TRAP:
-			// FIXME
+			panic("opcode not yet implemented: TRAP")
 		case spec.OP_RES:
-			// FIXME
+			panic("opcode not yet implemented: RES")
 		case spec.OP_RTI:
-			// FIXME
+			panic("opcode not yet implemented: RTI")
 		default:
-			// FIXME
+			panic(fmt.Sprintf("opcode not yet implemented: 0b%b", op))
 		}
 	}
 

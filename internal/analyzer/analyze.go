@@ -41,6 +41,8 @@ func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
 		switch v.Name {
 		case "ADD":
 			return a.analyzeAddInstruction(l)
+		case "AND":
+			return a.analyzeAndInstruction(l)
 		default:
 			a.errors.Add(v.Loc(), "unrecognized operation name")
 		}
@@ -72,6 +74,39 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 	case *cst.Integer:
 		return &ast.Instruction{
 			Opcode: spec.OP_ADD,
+			Dr:     dr,
+			Sr1:    sr1,
+			Mode:   1,
+			Imm5:   arg3.Value,
+		}
+	default:
+		a.errors.Add(arg3.Loc(), "expected register or integer, got: "+arg3.String())
+	}
+
+	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
+func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 3) {
+		return &ast.InvalidStatement{}
+	}
+
+	dr := a.analyzeRegister(l.Nodes[1])
+	sr1 := a.analyzeRegister(l.Nodes[2])
+
+	switch arg3 := l.Nodes[3].(type) {
+	case *cst.Symbol:
+		sr2 := a.analyzeRegister(arg3)
+		return &ast.Instruction{
+			Opcode: spec.OP_AND,
+			Dr:     dr,
+			Sr1:    sr1,
+			Mode:   0,
+			Sr2:    sr2,
+		}
+	case *cst.Integer:
+		return &ast.Instruction{
+			Opcode: spec.OP_AND,
 			Dr:     dr,
 			Sr1:    sr1,
 			Mode:   1,
