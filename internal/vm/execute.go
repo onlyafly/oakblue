@@ -7,15 +7,11 @@ import (
 	"strings"
 
 	"github.com/onlyafly/oakblue/internal/spec"
+	"github.com/onlyafly/oakblue/internal/util"
 )
 
 const (
-	pc_start   = 0x3000 // default PC start location
-	mask_11111 = 0x1F   // = 11111
-	mask_111   = 0x7    // = 0111
-	//TODO mask_11    = 0x3    // = 0011
-	mask_1 = 0x1 // = 0001
-
+	pc_start    = 0x3000 // default PC start location
 	memory_size = math.MaxUint16
 )
 
@@ -82,15 +78,15 @@ func (m *Machine) Execute() {
 			//  02-00  (if mode=0) SR2: sum register 2
 			//  04-00  (if mode=1) IMM5: immediate value, sign extended
 
-			dr := (instr >> 9) & mask_111
-			sr1 := (instr >> 6) & mask_111
-			mode := (instr >> 5) & mask_1
+			dr := (instr >> 9) & util.Mask_111
+			sr1 := (instr >> 6) & util.Mask_111
+			mode := (instr >> 5) & util.Mask_1
 
 			if mode == 1 {
-				imm5 := signExtend(instr&mask_11111, 5)
+				imm5 := signExtend(instr&util.Mask_11111, 5)
 				m.regs[dr] = m.regs[sr1] + imm5
 			} else {
-				sr2 := instr & mask_111
+				sr2 := instr & util.Mask_111
 				m.regs[dr] = m.regs[sr1] + m.regs[sr2]
 			}
 
@@ -137,7 +133,6 @@ func (m *Machine) readMemory(loc uint16) uint16 {
 	return m.mem[loc]
 }
 
-// TODO write a unit test for this
 // Any time a value is written to a register, we need to update the flags to indicate its sign
 func (m *Machine) updateFlags(r uint16) {
 	if m.regs[r] == 0 {
@@ -149,7 +144,8 @@ func (m *Machine) updateFlags(r uint16) {
 	}
 }
 
-// TODO write a unit test for this
+// Turn a twos-complement integer of length bitCount into a twos-complement integer of 16 bits
+// by extending it with 1s if it is negative and os if it is positive
 func signExtend(x uint16, bitCount int) uint16 {
 	if ((x >> (bitCount - 1)) & 1) == 1 {
 		x |= (0xFFFF << bitCount)
