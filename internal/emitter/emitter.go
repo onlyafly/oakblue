@@ -43,8 +43,17 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 		x = spec.OP_ADD << 12
 		x |= inst.Dr << 9
 		x |= inst.Sr1 << 6
-		x |= 1 << 5
-		x |= inst.Imm5
+
+		switch inst.Mode {
+		case 0:
+			x |= 0 << 5
+			x |= inst.Sr2
+		case 1:
+			x |= 1 << 5
+			x |= inst.Imm5
+		default:
+			m.errors.Add(inst.Loc(), "unknown mode")
+		}
 
 		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
 		if err != nil {

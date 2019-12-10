@@ -52,3 +52,18 @@ func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {
 	_, err := Analyze(input, syntax.NewErrorList("Syntax"))
 	assert.Error(t, err)
 }
+
+func Test_analyzer_analyzeRegister(t *testing.T) {
+	a := &analyzer{errors: syntax.NewErrorList("analysis")}
+
+	actual := a.analyzeRegister(cst.NewSymbol("R0"))
+	expected := spec.R_R0
+	assert.Equal(t, expected, actual)
+
+	actual = a.analyzeRegister(cst.NewSymbol("R7"))
+	expected = spec.R_R7
+	assert.Equal(t, expected, actual)
+
+	a.analyzeRegister(cst.NewSymbol("R8"))
+	assert.Error(t, a.errors)
+}

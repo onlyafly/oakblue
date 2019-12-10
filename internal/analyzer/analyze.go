@@ -91,19 +91,19 @@ func (a *analyzer) analyzeRegister(n cst.Node) int {
 		case "R0":
 			return spec.R_R0
 		case "R1":
-			return spec.R_R0
+			return spec.R_R1
 		case "R2":
-			return spec.R_R0
+			return spec.R_R2
 		case "R3":
-			return spec.R_R0
+			return spec.R_R3
 		case "R4":
-			return spec.R_R0
+			return spec.R_R4
 		case "R5":
-			return spec.R_R0
+			return spec.R_R5
 		case "R6":
-			return spec.R_R0
+			return spec.R_R6
 		case "R7":
-			return spec.R_R0
+			return spec.R_R7
 		default:
 			a.errors.Add(v.Loc(), "expected register, got: "+v.Name)
 		}
