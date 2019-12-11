@@ -36,6 +36,14 @@ func TestScan_Newline(t *testing.T) {
 	assert.Equal(t, "2", (<-tokens).String())
 }
 
+func TestScan_Hex(t *testing.T) {
+	_, tokens := Scan("testing", "x1")
+
+	tok := <-tokens
+	assert.Equal(t, "x1", tok.String())
+	assert.Equal(t, TcHex, tok.Code)
+}
+
 /* TODO delete me
 
 func TestScan(t *testing.T) {

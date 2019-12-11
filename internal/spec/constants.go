@@ -76,3 +76,12 @@ const (
 	FL_ZRO             // Z
 	FL_NEG             // N
 )
+
+const (
+	TRAPVECT_GETC  = 0x20
+	TRAPVECT_OUT   = 0x21
+	TRAPVECT_PUTS  = 0x22
+	TRAPVECT_IN    = 0x23
+	TRAPVECT_PUTSP = 0x24
+	TRAPVECT_HALT  = 0x25
+)

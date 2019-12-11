@@ -35,13 +35,14 @@ func statementsToStringsWithFunc(statements []Statement, convert func(x Statemen
 }
 
 type Instruction struct {
-	Opcode   int
-	Dr       int
-	Sr1      int
-	Sr2      int
-	Mode     int
-	Imm5     int
-	Location *syntax.Location
+	Opcode    int
+	Dr        int
+	Sr1       int
+	Sr2       int
+	Mode      int
+	Imm5      int
+	Trapvect8 uint8
+	Location  *syntax.Location
 }
 
 func (x *Instruction) String() string {

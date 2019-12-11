@@ -43,6 +43,8 @@ func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
 			return a.analyzeAddInstruction(l)
 		case "AND":
 			return a.analyzeAndInstruction(l)
+		case "TRAP":
+			return a.analyzeTrapInstruction(l)
 		default:
 			a.errors.Add(v.Loc(), "unrecognized operation name")
 		}
@@ -114,6 +116,24 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 		}
 	default:
 		a.errors.Add(arg3.Loc(), "expected register or integer, got: "+arg3.String())
+	}
+
+	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
+func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 1) {
+		return &ast.InvalidStatement{}
+	}
+
+	switch arg := l.Nodes[1].(type) {
+	case *cst.Hex:
+		return &ast.Instruction{
+			Opcode:    spec.OP_TRAP,
+			Trapvect8: uint8(arg.Value),
+		}
+	default:
+		a.errors.Add(arg.Loc(), "expected hex, got: "+arg.String())
 	}
 
 	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}

@@ -14,6 +14,14 @@ func TestParseSymbol(t *testing.T) {
 	assert.Equal(t, "fred", result.String())
 }
 
+func TestParse_Hex(t *testing.T) {
+	input := `x25`
+	result, err := Parse(input, "test", syntax.NewErrorList("Syntax"))
+	if assert.NoError(t, err) {
+		assert.Equal(t, "x25", result.String())
+	}
+}
+
 func TestParse_Simple(t *testing.T) {
 	input := `ADD R0 R0 1`
 	result, err := Parse(input, "test", syntax.NewErrorList("Syntax"))

@@ -89,6 +89,18 @@ func (x *Integer) String() string {
 }
 func (x *Integer) Loc() *syntax.Location { return x.Location }
 
+type Hex struct {
+	Value    uint16
+	Location *syntax.Location
+}
+
+func NewHex(value uint16) *Hex { return &Hex{Value: value} }
+func (x *Hex) String() string {
+	rep := "x" + strconv.FormatUint(uint64(x.Value), 16)
+	return rep
+}
+func (x *Hex) Loc() *syntax.Location { return x.Location }
+
 type Invalid struct {
 	Value    string
 	Location *syntax.Location

@@ -174,7 +174,12 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 
 	m := vm.NewMachine()
 	m.LoadMemory(machineCode, 0x3000)
-	m.Execute()
+	executeError := m.Execute()
+	if executeError != nil {
+		t.Errorf("Error during execution of test <%s>: %s", sourceFilePath, executeError.Error())
+		return
+	}
+
 	registerDump := m.RegisterDump()
 
 	regFilePath := sourceDirPart + testName + ".reg"

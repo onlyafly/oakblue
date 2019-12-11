@@ -2,9 +2,11 @@ package parser
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/syntax"
+	"github.com/onlyafly/oakblue/internal/util"
 )
 
 // Parse accepts a string and the name of the source of the code, and returns
@@ -123,6 +125,8 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 		errors.Add(token.Loc, "Unbalanced parentheses")
 	case TcNumber:
 		return parseInteger(token, errors)
+	case TcHex:
+		return parseHex(token, errors)
 	case TcSymbol:
 		return parseSymbol(token, errors)
 	case TcString:
@@ -157,6 +161,23 @@ func parseInteger(t Token, errors *syntax.ErrorList) *cst.Integer {
 	}
 
 	return &cst.Integer{Value: int(x), Location: t.Loc}
+}
+
+func parseHex(t Token, errors *syntax.ErrorList) *cst.Hex {
+	hexString := t.Value
+	if strings.HasPrefix(hexString, "0x") {
+		hexString = util.TrimLeftChars(hexString, 2)
+	} else if strings.HasPrefix(hexString, "x") {
+		hexString = util.TrimLeftChars(hexString, 1)
+	}
+
+	x, err := strconv.ParseUint(hexString, 16, 16)
+	if err != nil {
+		errors.Add(t.Loc, "Invalid hex: "+t.Value)
+		return &cst.Hex{Value: uint16(x), Location: t.Loc}
+	}
+
+	return &cst.Hex{Value: uint16(x), Location: t.Loc}
 }
 
 func parseSymbol(t Token, errors *syntax.ErrorList) cst.Node {

@@ -80,6 +80,15 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 		if err != nil {
 			m.errors.Add(inst.Loc(), err.Error())
 		}
+	case spec.OP_TRAP:
+		var x int
+		x = spec.OP_TRAP << 12
+		x |= int(inst.Trapvect8) & 0b11111111
+
+		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
+		if err != nil {
+			m.errors.Add(inst.Loc(), err.Error())
+		}
 	default:
 		m.errors.Add(inst.Loc(), fmt.Sprintf("unrecognized opcode: 0b%b", inst.Opcode))
 	}

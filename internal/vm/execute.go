@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/onlyafly/oakblue/internal/spec"
@@ -49,7 +50,7 @@ func (m *Machine) LoadMemory(data []byte, loadAddress uint16) {
 	}
 }
 
-func (m *Machine) Execute() {
+func (m *Machine) Execute() error {
 
 	// set the PC to starting position
 	m.regs[spec.R_PC] = pc_start
@@ -59,7 +60,7 @@ func (m *Machine) Execute() {
 
 		// ORDERING: The PC must only be incremented after its use is complete
 		if m.regs[spec.R_PC] >= memory_size {
-			return // end of memory reached
+			return nil // end of memory reached
 		}
 		instr := m.readMemory(m.regs[spec.R_PC])
 		m.regs[spec.R_PC]++
@@ -114,39 +115,45 @@ func (m *Machine) Execute() {
 
 			m.updateFlags(dr)
 		case spec.OP_NOT:
-			panic("opcode not yet implemented: NOT")
+			return fmt.Errorf("opcode not yet implemented: NOT")
 		case spec.OP_BR:
-			panic("opcode not yet implemented: BR. KEVIN: YOU NEED TO IMPLEMENT THE HALT TRAP")
+			return fmt.Errorf("opcode not yet implemented: BR")
 		case spec.OP_JMP:
-			panic("opcode not yet implemented: JMP")
+			return fmt.Errorf("opcode not yet implemented: JMP")
 		case spec.OP_JSR:
-			panic("opcode not yet implemented: JSR")
+			return fmt.Errorf("opcode not yet implemented: JSR")
 		case spec.OP_LD:
-			panic("opcode not yet implemented: LD")
+			return fmt.Errorf("opcode not yet implemented: LD")
 		case spec.OP_LDI:
-			panic("opcode not yet implemented: LDI")
+			return fmt.Errorf("opcode not yet implemented: LDI")
 		case spec.OP_LDR:
-			panic("opcode not yet implemented: LDR")
+			return fmt.Errorf("opcode not yet implemented: LDR")
 		case spec.OP_LEA:
-			panic("opcode not yet implemented: LEA")
+			return fmt.Errorf("opcode not yet implemented: LEA")
 		case spec.OP_ST:
-			panic("opcode not yet implemented: ST")
+			return fmt.Errorf("opcode not yet implemented: ST")
 		case spec.OP_STI:
-			panic("opcode not yet implemented: STI")
+			return fmt.Errorf("opcode not yet implemented: STI")
 		case spec.OP_STR:
-			panic("opcode not yet implemented: STR")
+			return fmt.Errorf("opcode not yet implemented: STR")
 		case spec.OP_TRAP:
-			panic("opcode not yet implemented: TRAP")
+			trapvect8 := instr & 0b11111111
+			switch trapvect8 {
+			case spec.TRAPVECT_HALT:
+				running = false
+			default:
+				return fmt.Errorf("trap vector not yet implemented: %s", strconv.FormatUint(uint64(trapvect8), 16))
+			}
 		case spec.OP_RES:
-			panic("opcode not yet implemented: RES")
+			return fmt.Errorf("opcode not yet implemented: RES")
 		case spec.OP_RTI:
-			panic("opcode not yet implemented: RTI")
+			return fmt.Errorf("opcode not yet implemented: RTI")
 		default:
-			panic(fmt.Sprintf("opcode not yet implemented: 0b%b", op))
+			return fmt.Errorf(fmt.Sprintf("opcode not yet implemented: 0b%b", op))
 		}
 	}
 
-	fmt.Println("Hello, Oakblue")
+	return nil
 }
 
 func (m *Machine) readMemory(loc uint16) uint16 {

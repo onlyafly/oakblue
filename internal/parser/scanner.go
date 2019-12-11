@@ -52,6 +52,7 @@ const (
 	TcString
 	TcChar
 	TcNewline
+	TcHex
 )
 
 const eof = -1
@@ -207,6 +208,8 @@ Outer:
 			return scanChar
 		case r == ';':
 			return scanSingleLineComment
+		case r == 'x':
+			return scanHex
 		case isSymbolic(r):
 			s.backup()
 			return scanSymbol
@@ -281,6 +284,22 @@ func scanSymbol(s *Scanner) stateFn {
 	}
 	s.backup()
 	s.emit(TcSymbol)
+	return scanBegin
+}
+
+func scanHex(s *Scanner) stateFn {
+
+	digits := "0123456789abcdefABCDEF"
+	s.acceptRun(digits)
+
+	// Next thing must not be alphanumeric
+	if isAlphaNumeric(s.peek()) {
+		s.next()
+		s.emitErrorf("bad hex number syntax: %q", s.input[s.start:s.pos])
+	} else {
+		s.emit(TcHex)
+	}
+
 	return scanBegin
 }
 
