@@ -44,7 +44,7 @@ func (p *parser) next() Token {
 	return p.lookahead[p.lookaheadCount]
 }
 
-/* TODO still needed?
+/* TODO: still needed?
 func (p *parser) backup() {
 	p.lookaheadCount++
 }
@@ -108,7 +108,7 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 	case TcError:
 		errors.Add(token.Loc, "Error token: "+token.String())
 	case TcLeftParen:
-		/* TODO delete
+		/* TODO: delete
 		var list []cst.Node
 		for p.peek().Code != TcRightParen {
 			if p.peek().Code == TcEOF || p.peek().Code == TcError {
@@ -132,7 +132,7 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 	case TcString:
 		return parseString(token, errors)
 	case TcChar:
-		//TODO delete: return parseChar(token, errors)
+		//TODO: delete this: return parseChar(token, errors)
 	case TcSingleQuote:
 		return parseQuote(p, errors)
 	default:
@@ -143,7 +143,7 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 }
 
 func parseQuote(p *parser, errors *syntax.ErrorList) cst.Node {
-	/* TODO remove
+	/* TODO: remove
 	node := parseNode(p, errors)
 	var list []cst.Node
 	list = append(list, &cst.Symbol{Name: "quote"}, node)
@@ -194,7 +194,7 @@ func parseString(t Token, errors *syntax.ErrorList) *cst.Str {
 
 ////////// Helper Procedures
 
-/* TODO still needed?
+/* TODO: still needed?
 func ensureSymbol(n cst.Node) *cst.Symbol {
 	if v, ok := n.(*cst.Symbol); ok {
 		return v

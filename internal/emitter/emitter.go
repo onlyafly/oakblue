@@ -38,6 +38,11 @@ type emitter struct {
 
 func (m *emitter) emitInstruction(inst *ast.Instruction) {
 	switch inst.Opcode {
+	case spec.OP_BR, spec.OP_LD, spec.OP_ST, spec.OP_JSR,
+		spec.OP_LDR, spec.OP_STR, spec.OP_RTI, spec.OP_LDI,
+		spec.OP_STI, spec.OP_JMP, spec.OP_RES, spec.OP_LEA:
+		// TODO
+		panic("not yet implemented")
 	case spec.OP_ADD:
 		var x int
 		x = spec.OP_ADD << 12
@@ -75,6 +80,18 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 		default:
 			m.errors.Add(inst.Loc(), "unknown mode")
 		}
+
+		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
+		if err != nil {
+			m.errors.Add(inst.Loc(), err.Error())
+		}
+	case spec.OP_NOT:
+		var x int
+		x = spec.OP_NOT << 12
+		x |= inst.Dr << 9
+		x |= inst.Sr1 << 6
+		x |= 0b1 << 5
+		x |= 0b11111
 
 		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
 		if err != nil {

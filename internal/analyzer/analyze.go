@@ -43,10 +43,12 @@ func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
 			return a.analyzeAddInstruction(l)
 		case "AND":
 			return a.analyzeAndInstruction(l)
+		case "NOT":
+			return a.analyzeNotInstruction(l)
 		case "TRAP":
 			return a.analyzeTrapInstruction(l)
 		default:
-			a.errors.Add(v.Loc(), "unrecognized operation name")
+			a.errors.Add(v.Loc(), "unrecognized operation name: "+v.Name)
 		}
 	default:
 		a.errors.Add(v.Loc(), "unrecognized statement syntax")
@@ -119,6 +121,21 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 	}
 
 	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
+func (a *analyzer) analyzeNotInstruction(l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 2) {
+		return &ast.InvalidStatement{}
+	}
+
+	dr := a.analyzeRegister(l.Nodes[1])
+	sr := a.analyzeRegister(l.Nodes[2])
+
+	return &ast.Instruction{
+		Opcode: spec.OP_NOT,
+		Dr:     dr,
+		Sr1:    sr,
+	}
 }
 
 func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {

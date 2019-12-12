@@ -44,7 +44,7 @@ func TestScan_Hex(t *testing.T) {
 	assert.Equal(t, TcHex, tok.Code)
 }
 
-/* TODO delete me
+/* TODO: delete me
 
 func TestScan(t *testing.T) {
 	_, tokens := Scan("tester1", "(1 2 3)")

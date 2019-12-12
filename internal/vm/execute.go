@@ -72,10 +72,10 @@ func (m *Machine) Execute() error {
 			// ADD
 			//  15-12  opcode
 			//  11-09  DR: destination register
-			//  08-06  SR1: sum register 1
+			//  08-06  SR1: source register 1
 			//  05     mode: 0 = register, 1 = immediate
 			//  04-03  (if mode=0) 00
-			//  02-00  (if mode=0) SR2: sum register 2
+			//  02-00  (if mode=0) SR2: source register 2
 			//  04-00  (if mode=1) IMM5: immediate value, sign extended
 
 			dr := (instr >> 9) & 0b111
@@ -95,10 +95,10 @@ func (m *Machine) Execute() error {
 			// AND
 			//  15-12  opcode
 			//  11-09  DR: destination register
-			//  08-06  SR1: sum register 1
+			//  08-06  SR1: source register 1
 			//  05     mode: 0 = register, 1 = immediate
 			//  04-03  (if mode=0) 00
-			//  02-00  (if mode=0) SR2: sum register 2
+			//  02-00  (if mode=0) SR2: source register 2
 			//  04-00  (if mode=1) IMM5: immediate value, sign extended
 
 			dr := (instr >> 9) & 0b111
@@ -115,7 +115,19 @@ func (m *Machine) Execute() error {
 
 			m.updateFlags(dr)
 		case spec.OP_NOT:
-			return fmt.Errorf("opcode not yet implemented: NOT")
+			// NOT
+			//  15-12  opcode
+			//  11-09  DR: destination register
+			//  08-06  SR: source register
+			//  05     1
+			//  04-00  11111
+
+			dr := (instr >> 9) & 0b111
+			sr := (instr >> 6) & 0b111
+
+			m.regs[dr] = ^m.regs[sr]
+
+			m.updateFlags(dr)
 		case spec.OP_BR:
 			return fmt.Errorf("opcode not yet implemented: BR")
 		case spec.OP_JMP:
