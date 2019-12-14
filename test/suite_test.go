@@ -20,6 +20,9 @@ const (
 	assemblerSuiteTestDataDir = "test/testdata_assembler"
 	vmSuiteTestDataDir        = "test/testdata_vm"
 	fileExtPattern            = "*.asm"
+	objFileExtension          = ".obj"
+	errFileExtension          = ".err"
+	regFileExtension          = ".reg"
 )
 
 func TestMain(m *testing.M) {
@@ -108,7 +111,7 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 	program, err := analyzer.Analyze(listing, errorList)
 
 	if err != nil {
-		outputFilePath := sourceDirPart + testName + ".err"
+		outputFilePath := sourceDirPart + testName + errFileExtension
 		expectedRaw, errOut := util.ReadTextFile(outputFilePath)
 		if errOut != nil {
 			expectedRaw = "SUITE_TEST FOUND NO .ERR FILE AT <" + outputFilePath + ">"
@@ -126,7 +129,7 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		return
 	}
 
-	outputFilePath := sourceDirPart + testName + ".bin"
+	outputFilePath := sourceDirPart + testName + objFileExtension
 
 	expected, errOut := util.ReadBinaryFile(outputFilePath)
 	if errOut != nil {
@@ -153,7 +156,7 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 	program, err := analyzer.Analyze(listing, errorList)
 
 	if err != nil {
-		outputFilePath := sourceDirPart + testName + ".err"
+		outputFilePath := sourceDirPart + testName + errFileExtension
 		expectedRaw, errOut := util.ReadTextFile(outputFilePath)
 		if errOut != nil {
 			expectedRaw = "SUITE_TEST FOUND NO .ERR FILE AT <" + outputFilePath + ">"
@@ -182,7 +185,7 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 
 	registerDump := m.RegisterDump()
 
-	regFilePath := sourceDirPart + testName + ".reg"
+	regFilePath := sourceDirPart + testName + regFileExtension
 	expectedRegisterDump, errOut := util.ReadTextFile(regFilePath)
 	if errOut != nil {
 		t.Errorf("Error reading file <" + regFilePath + ">: " + errOut.Error())
