@@ -22,25 +22,31 @@ func Analyze(input cst.Listing, errorList *syntax.ErrorList) (*ast.Program, erro
 		return nil, errorList
 	}
 
-	return ast.NewProgram(statements, symtab), nil
+	return ast.NewProgram(statements, symtab, a.customOrigin), nil
 }
 
 type analyzer struct {
-	errors *syntax.ErrorList
-	symtab *ast.SymbolTable
+	errors       *syntax.ErrorList
+	symtab       *ast.SymbolTable
+	customOrigin uint16
 }
 
 func (a *analyzer) analyzeStatements(l cst.Listing) []ast.Statement {
 	var statements []ast.Statement
 
-	for i, line := range l {
-		statements = append(statements, a.analyzeStatement(i, line))
+	var lineIndex uint16
+	for _, line := range l {
+		statement, statementSize := a.analyzeStatement(lineIndex, line)
+		if statement != nil {
+			statements = append(statements, statement)
+		}
+		lineIndex += statementSize
 	}
 
 	return statements
 }
 
-func (a *analyzer) analyzeStatement(lineIndex int, l *cst.Line) ast.Statement {
+func (a *analyzer) analyzeStatement(lineIndex uint16, l *cst.Line) (ast.Statement, uint16) {
 	firstNode := l.Nodes[0]
 
 	// Analyze the optional label
@@ -61,19 +67,21 @@ func (a *analyzer) analyzeStatement(lineIndex int, l *cst.Line) ast.Statement {
 	case *cst.Symbol:
 		switch strings.ToUpper(v.Name) {
 		case "ADD":
-			return a.analyzeAddInstruction(l)
+			return a.analyzeAddInstruction(l), 1
 		case "AND":
-			return a.analyzeAndInstruction(l)
+			return a.analyzeAndInstruction(l), 1
 		case "LD":
-			return a.analyzeLdInstruction(l)
+			return a.analyzeLdInstruction(l), 1
 		case "NOT":
-			return a.analyzeNotInstruction(l)
+			return a.analyzeNotInstruction(l), 1
 		case "TRAP":
-			return a.analyzeTrapInstruction(l)
+			return a.analyzeTrapInstruction(l), 1
 		case "HALT":
-			return a.analyzeHaltInstruction(l)
+			return a.analyzeHaltInstruction(l), 1
 		case ".FILL":
-			return a.analyzeFillDirective(l)
+			return a.analyzeFillDirective(l), 1
+		case ".ORIG":
+			return a.analyzeOrigDirective(l, lineIndex), 0 // .ORIG directive has zero size
 		default:
 			a.errors.Add(v, "unrecognized operation name: "+v.Name)
 		}
@@ -81,7 +89,7 @@ func (a *analyzer) analyzeStatement(lineIndex int, l *cst.Line) ast.Statement {
 		a.errors.Add(v, fmt.Sprintf("unrecognized statement syntax: %v", l))
 	}
 
-	return &ast.InvalidStatement{Location: firstNode.Loc(), MoreInformation: l.String()}
+	return &ast.InvalidStatement{Location: firstNode.Loc(), MoreInformation: l.String()}, 0
 }
 
 func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
@@ -237,6 +245,21 @@ func (a *analyzer) analyzeFillDirective(l *cst.Line) ast.Statement {
 	}
 
 	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
+func (a *analyzer) analyzeOrigDirective(l *cst.Line, lineIndex uint16) ast.Statement {
+	if lineIndex != 0 {
+		a.errors.Add(l, ".ORIG directive must appear before first instruction")
+	}
+
+	switch arg := l.Nodes[1].(type) {
+	case *cst.Hex:
+		a.customOrigin = arg.Value
+	default:
+		a.errors.Add(arg, "expected hexadecimal, got: "+arg.String())
+	}
+
+	return nil
 }
 
 func (a *analyzer) analyzeRegister(n cst.Node) int {

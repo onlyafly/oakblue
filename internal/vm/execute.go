@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	pc_start    = 0x3000 // default PC start location
 	memory_size = math.MaxUint16
 )
 
@@ -42,9 +41,14 @@ func (m *Machine) RegisterDump() string {
 	return b.String()
 }
 
-func (m *Machine) LoadMemory(data []byte, loadAddress uint16) {
+func (m *Machine) LoadBytecode(bytecode []byte) {
+	originHeader := binary.BigEndian.Uint16(bytecode[0:2])
+	m.loadMemory(bytecode, 2, originHeader)
+}
+
+func (m *Machine) loadMemory(data []byte, dataStartIndex int, loadAddress uint16) {
 	im := loadAddress
-	for id := 0; id+1 < len(data); id += 2 {
+	for id := dataStartIndex; id+1 < len(data); id += 2 {
 		m.mem[im] = binary.BigEndian.Uint16(data[id : id+2])
 		im++
 	}
@@ -53,7 +57,7 @@ func (m *Machine) LoadMemory(data []byte, loadAddress uint16) {
 func (m *Machine) Execute() error {
 
 	// set the PC to starting position
-	m.regs[spec.R_PC] = pc_start
+	m.regs[spec.R_PC] = spec.PCStart
 
 	running := true
 	for running {

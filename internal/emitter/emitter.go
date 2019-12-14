@@ -15,6 +15,17 @@ func Emit(p *ast.Program, errorList *syntax.ErrorList) ([]byte, error) {
 	var buf bytes.Buffer
 	m := &emitter{errors: errorList, buf: &buf, tab: p.Symtab}
 
+	if len(p.Statements) == 0 {
+		return buf.Bytes(), nil
+	}
+
+	// Write header with origin
+	if p.Origin == 0 {
+		m.write(spec.DefaultOrigin, p.Statements[0])
+	} else {
+		m.write(p.Origin, p.Statements[0])
+	}
+
 	for pc, s := range p.Statements {
 		switch v := s.(type) {
 		case *ast.Instruction:

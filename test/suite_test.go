@@ -171,13 +171,13 @@ func testExecutingFile(sourceFilePath string, t *testing.T) {
 		return
 	}
 
-	machineCode, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
+	bytecode, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
 	if !assert.NoError(t, emitError) {
 		return
 	}
 
 	m := vm.NewMachine()
-	m.LoadMemory(machineCode, 0x3000)
+	m.LoadBytecode(bytecode)
 	executeError := m.Execute()
 	if executeError != nil {
 		t.Errorf("Error during execution of test <%s>: %s", sourceFilePath, executeError.Error())

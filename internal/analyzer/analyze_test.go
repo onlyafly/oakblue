@@ -14,6 +14,10 @@ func TestAnalyze(t *testing.T) {
 
 	input := cst.Listing([]*cst.Line{
 		cst.NewLine([]cst.Node{
+			cst.NewSymbol(".ORIG"),
+			cst.NewHex(0x3000),
+		}),
+		cst.NewLine([]cst.Node{
 			cst.NewSymbol("ADD"),
 			cst.NewSymbol("R0"),
 			cst.NewSymbol("R0"),
@@ -32,7 +36,7 @@ func TestAnalyze(t *testing.T) {
 				Mode:   1,
 				Imm5:   1,
 			},
-		}, ast.NewSymbolTable())
+		}, ast.NewSymbolTable(), 0x3000)
 
 		assert.EqualValues(t, expected, actual)
 	}

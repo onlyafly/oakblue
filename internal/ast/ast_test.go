@@ -17,7 +17,7 @@ func TestProgram_String_OneStatement(t *testing.T) {
 			Mode:   1,
 			Imm5:   1,
 		},
-	}, tab)
+	}, tab, 0x3000)
 
 	expected := "ADD R0 R0 1"
 	actual := p.String()

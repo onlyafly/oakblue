@@ -11,10 +11,11 @@ import (
 type Program struct {
 	Statements []Statement
 	Symtab     *SymbolTable
+	Origin     uint16
 }
 
-func NewProgram(xs []Statement, symtab *SymbolTable) *Program {
-	return &Program{Statements: xs, Symtab: symtab}
+func NewProgram(xs []Statement, symtab *SymbolTable, origin uint16) *Program {
+	return &Program{Statements: xs, Symtab: symtab, Origin: origin}
 }
 
 func (p *Program) String() string {

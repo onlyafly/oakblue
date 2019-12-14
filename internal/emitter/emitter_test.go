@@ -18,12 +18,12 @@ func TestEmit_Add(t *testing.T) {
 			Mode:   1,
 			Imm5:   1,
 		},
-	}, ast.NewSymbolTable())
+	}, ast.NewSymbolTable(), 0x3000)
 
 	actual, err := Emit(program, syntax.NewErrorList("Emit"))
 	assert.NoError(t, err)
 
-	expected := []byte{0x1e, 0xa1}
+	expected := []byte{0x30, 0x0, 0x1e, 0xa1}
 	assert.EqualValues(t, expected, actual)
 
 	/*

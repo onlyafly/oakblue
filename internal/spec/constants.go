@@ -85,3 +85,8 @@ const (
 	TRAPVECT_PUTSP = 0x24
 	TRAPVECT_HALT  = 0x25
 )
+
+const (
+	DefaultOrigin = 0x3000
+	PCStart       = 0x3000 // default PC start location
+)
