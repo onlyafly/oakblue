@@ -1,0 +1,3 @@
+ADD R0 R0 1
+HALT
+ADD R0 R0 2

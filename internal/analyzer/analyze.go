@@ -49,6 +49,8 @@ func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
 			return a.analyzeNotInstruction(l)
 		case "TRAP":
 			return a.analyzeTrapInstruction(l)
+		case "HALT":
+			return a.analyzeHaltInstruction(l)
 		case ".FILL":
 			return a.analyzeFillDirective(l)
 		default:
@@ -164,6 +166,18 @@ func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
 	}
 
 	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
+func (a *analyzer) analyzeHaltInstruction(l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 0) {
+		return &ast.InvalidStatement{}
+	}
+
+	return &ast.Instruction{
+		Opcode:    spec.OP_TRAP,
+		Trapvect8: uint8(spec.TRAPVECT_HALT),
+		Location:  l.Loc(),
+	}
 }
 
 func (a *analyzer) analyzeFillDirective(l *cst.Line) ast.Statement {
