@@ -2,6 +2,8 @@ package analyzer
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/onlyafly/oakblue/internal/ast"
 	"github.com/onlyafly/oakblue/internal/cst"
 	"github.com/onlyafly/oakblue/internal/spec"
@@ -38,7 +40,7 @@ func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
 
 	switch v := firstNode.(type) {
 	case *cst.Symbol:
-		switch v.Name {
+		switch strings.ToUpper(v.Name) {
 		case "ADD":
 			return a.analyzeAddInstruction(l)
 		case "AND":
@@ -47,6 +49,8 @@ func (a *analyzer) analyzeStatement(l *cst.Line) ast.Statement {
 			return a.analyzeNotInstruction(l)
 		case "TRAP":
 			return a.analyzeTrapInstruction(l)
+		case ".FILL":
+			return a.analyzeFillDirective(l)
 		default:
 			a.errors.Add(v.Loc(), "unrecognized operation name: "+v.Name)
 		}
@@ -69,19 +73,21 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 	case *cst.Symbol:
 		sr2 := a.analyzeRegister(arg3)
 		return &ast.Instruction{
-			Opcode: spec.OP_ADD,
-			Dr:     dr,
-			Sr1:    sr1,
-			Mode:   0,
-			Sr2:    sr2,
+			Opcode:   spec.OP_ADD,
+			Dr:       dr,
+			Sr1:      sr1,
+			Mode:     0,
+			Sr2:      sr2,
+			Location: l.Loc(),
 		}
 	case *cst.Integer:
 		return &ast.Instruction{
-			Opcode: spec.OP_ADD,
-			Dr:     dr,
-			Sr1:    sr1,
-			Mode:   1,
-			Imm5:   arg3.Value,
+			Opcode:   spec.OP_ADD,
+			Dr:       dr,
+			Sr1:      sr1,
+			Mode:     1,
+			Imm5:     arg3.Value,
+			Location: l.Loc(),
 		}
 	default:
 		a.errors.Add(arg3.Loc(), "expected register or integer, got: "+arg3.String())
@@ -102,19 +108,21 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 	case *cst.Symbol:
 		sr2 := a.analyzeRegister(arg3)
 		return &ast.Instruction{
-			Opcode: spec.OP_AND,
-			Dr:     dr,
-			Sr1:    sr1,
-			Mode:   0,
-			Sr2:    sr2,
+			Opcode:   spec.OP_AND,
+			Dr:       dr,
+			Sr1:      sr1,
+			Mode:     0,
+			Sr2:      sr2,
+			Location: l.Loc(),
 		}
 	case *cst.Integer:
 		return &ast.Instruction{
-			Opcode: spec.OP_AND,
-			Dr:     dr,
-			Sr1:    sr1,
-			Mode:   1,
-			Imm5:   arg3.Value,
+			Opcode:   spec.OP_AND,
+			Dr:       dr,
+			Sr1:      sr1,
+			Mode:     1,
+			Imm5:     arg3.Value,
+			Location: l.Loc(),
 		}
 	default:
 		a.errors.Add(arg3.Loc(), "expected register or integer, got: "+arg3.String())
@@ -132,9 +140,10 @@ func (a *analyzer) analyzeNotInstruction(l *cst.Line) ast.Statement {
 	sr := a.analyzeRegister(l.Nodes[2])
 
 	return &ast.Instruction{
-		Opcode: spec.OP_NOT,
-		Dr:     dr,
-		Sr1:    sr,
+		Opcode:   spec.OP_NOT,
+		Dr:       dr,
+		Sr1:      sr,
+		Location: l.Loc(),
 	}
 }
 
@@ -148,9 +157,24 @@ func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
 		return &ast.Instruction{
 			Opcode:    spec.OP_TRAP,
 			Trapvect8: uint8(arg.Value),
+			Location:  l.Loc(),
 		}
 	default:
 		a.errors.Add(arg.Loc(), "expected hex, got: "+arg.String())
+	}
+
+	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
+func (a *analyzer) analyzeFillDirective(l *cst.Line) ast.Statement {
+	switch arg := l.Nodes[1].(type) {
+	case *cst.Integer:
+		return &ast.FillDirective{
+			Value:    uint16(arg.Value),
+			Location: l.Loc(),
+		}
+	default:
+		a.errors.Add(arg.Loc(), "expected integer, got: "+arg.String())
 	}
 
 	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}

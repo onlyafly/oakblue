@@ -19,8 +19,10 @@ func Emit(p *ast.Program, errorList *syntax.ErrorList) ([]byte, error) {
 		switch v := s.(type) {
 		case *ast.Instruction:
 			m.emitInstruction(v)
+		case *ast.FillDirective:
+			m.emitFillDirective(v)
 		default:
-			return nil, fmt.Errorf("Unexpected statement type: %v", v)
+			m.errors.Add(v.Loc(), "unexpected statement type: "+v.String())
 		}
 	}
 
@@ -81,6 +83,7 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			m.errors.Add(inst.Loc(), "unknown mode")
 		}
 
+		// TODO: refactor this out
 		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
 		if err != nil {
 			m.errors.Add(inst.Loc(), err.Error())
@@ -108,5 +111,13 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 		}
 	default:
 		m.errors.Add(inst.Loc(), fmt.Sprintf("unrecognized opcode: 0b%b", inst.Opcode))
+	}
+}
+
+func (m *emitter) emitFillDirective(d *ast.FillDirective) {
+	// TODO refactor this
+	err := binary.Write(m.buf, binary.BigEndian, uint16(d.Value))
+	if err != nil {
+		m.errors.Add(d.Loc(), err.Error())
 	}
 }

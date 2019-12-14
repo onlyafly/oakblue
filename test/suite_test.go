@@ -122,22 +122,23 @@ func testAssemblingFile(sourceFilePath string, t *testing.T) {
 		expected := strings.TrimSpace(expectedWithUntrimmed)
 
 		verify(t, sourceFilePath, input, expected, err.Error())
+		return
 	}
 
-	actual, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
-	if emitError != nil {
+	actualBytecode, emitError := emitter.Emit(program, syntax.NewErrorList("Emit"))
+	if !assert.NoError(t, emitError) {
 		return
 	}
 
 	outputFilePath := sourceDirPart + testName + objFileExtension
 
-	expected, errOut := util.ReadBinaryFile(outputFilePath)
+	expectedBytecode, errOut := util.ReadBinaryFile(outputFilePath)
 	if errOut != nil {
 		t.Errorf("Error reading file <" + outputFilePath + ">: " + errOut.Error())
 		return
 	}
 
-	verifyBinary(t, sourceFilePath, input, expected, actual)
+	verifyBinary(t, sourceFilePath, input, expectedBytecode, actualBytecode)
 }
 
 func testExecutingFile(sourceFilePath string, t *testing.T) {

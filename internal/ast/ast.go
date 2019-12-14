@@ -70,3 +70,11 @@ type InvalidStatement struct {
 
 func (x *InvalidStatement) String() string        { return "<INVALID STATEMENT: " + x.MoreInformation + ">" }
 func (x *InvalidStatement) Loc() *syntax.Location { return x.Location }
+
+type FillDirective struct {
+	Value    uint16
+	Location *syntax.Location
+}
+
+func (x *FillDirective) String() string        { return fmt.Sprintf(".FILL %d", x.Value) }
+func (x *FillDirective) Loc() *syntax.Location { return x.Location }
