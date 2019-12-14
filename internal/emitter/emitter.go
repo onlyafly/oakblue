@@ -62,10 +62,7 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			m.errors.Add(inst.Loc(), "unknown mode")
 		}
 
-		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
-		if err != nil {
-			m.errors.Add(inst.Loc(), err.Error())
-		}
+		m.write(uint16(x), inst)
 	case spec.OP_AND:
 		var x int
 		x = spec.OP_AND << 12
@@ -83,11 +80,7 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			m.errors.Add(inst.Loc(), "unknown mode")
 		}
 
-		// TODO: refactor this out
-		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
-		if err != nil {
-			m.errors.Add(inst.Loc(), err.Error())
-		}
+		m.write(uint16(x), inst)
 	case spec.OP_NOT:
 		var x int
 		x = spec.OP_NOT << 12
@@ -96,28 +89,25 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 		x |= 0b1 << 5
 		x |= 0b11111
 
-		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
-		if err != nil {
-			m.errors.Add(inst.Loc(), err.Error())
-		}
+		m.write(uint16(x), inst)
 	case spec.OP_TRAP:
 		var x int
 		x = spec.OP_TRAP << 12
 		x |= int(inst.Trapvect8) & 0b11111111
 
-		err := binary.Write(m.buf, binary.BigEndian, uint16(x))
-		if err != nil {
-			m.errors.Add(inst.Loc(), err.Error())
-		}
+		m.write(uint16(x), inst)
 	default:
 		m.errors.Add(inst.Loc(), fmt.Sprintf("unrecognized opcode: 0b%b", inst.Opcode))
 	}
 }
 
 func (m *emitter) emitFillDirective(d *ast.FillDirective) {
-	// TODO refactor this
-	err := binary.Write(m.buf, binary.BigEndian, uint16(d.Value))
+	m.write(uint16(d.Value), d)
+}
+
+func (m *emitter) write(x uint16, l syntax.HasLocation) {
+	err := binary.Write(m.buf, binary.BigEndian, x)
 	if err != nil {
-		m.errors.Add(d.Loc(), err.Error())
+		m.errors.Add(l.Loc(), err.Error())
 	}
 }

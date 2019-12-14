@@ -5,3 +5,7 @@ type Location struct {
 	Line     int
 	Filename string
 }
+
+type HasLocation interface {
+	Loc() *Location
+}
