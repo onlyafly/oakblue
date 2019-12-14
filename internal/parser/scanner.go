@@ -197,7 +197,7 @@ Outer:
 		case '0' <= r && r <= '9':
 			s.backup()
 			return scanNumber
-		case r == '+' || r == '-':
+		case r == '+' || r == '-' || r == '#':
 			rnext := s.next()
 			if '0' <= rnext && rnext <= '9' {
 				s.backup()
@@ -223,12 +223,14 @@ Outer:
 			return scanSymbol
 		case r == '"':
 			return scanString
+		/* TODO change multiline comment to something else
 		case r == '#':
 			rnext := s.next()
 			if rnext == '|' {
 				return scanMultiLineComment
 			}
 			s.emitErrorf("unrecognized character sequence: '%c%c' = %v,%v", r, rnext, r, rnext)
+		*/
 		case r == eof:
 			break Outer
 		default:
@@ -312,6 +314,10 @@ func scanHex(s *Scanner) stateFn {
 }
 
 func scanNumber(s *Scanner) stateFn {
+
+	// Accept leading decimal flag
+	s.accept("#")
+
 	// Optional leading sign
 	s.accept("+-")
 

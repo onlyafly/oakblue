@@ -160,7 +160,12 @@ func parseQuote(p *parser, errors *syntax.ErrorList) cst.Node {
 }
 
 func parseInteger(t Token, errors *syntax.ErrorList) *cst.Integer {
-	x, err := strconv.ParseInt(t.Value, 10, 32)
+	intString := t.Value
+	if strings.HasPrefix(t.Value, "#") {
+		intString = util.TrimLeftChars(t.Value, 1)
+	}
+
+	x, err := strconv.ParseInt(intString, 10, 32)
 
 	if err != nil {
 		errors.Add(t, "Invalid integer: "+t.Value)
