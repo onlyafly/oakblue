@@ -13,16 +13,16 @@ import (
 // Emit emits an assembled binary image
 func Emit(p *ast.Program, errorList *syntax.ErrorList) ([]byte, error) {
 	var buf bytes.Buffer
-	m := &emitter{errors: errorList, buf: &buf}
+	m := &emitter{errors: errorList, buf: &buf, tab: p.Symtab}
 
-	for _, s := range p.Statements {
+	for pc, s := range p.Statements {
 		switch v := s.(type) {
 		case *ast.Instruction:
-			m.emitInstruction(v)
+			m.emitInstruction(uint16(pc), v)
 		case *ast.FillDirective:
 			m.emitFillDirective(v)
 		default:
-			m.errors.Add(v.Loc(), "unexpected statement type: "+v.String())
+			m.errors.Add(v, "unexpected statement type: "+v.String())
 		}
 	}
 
@@ -36,11 +36,12 @@ func Emit(p *ast.Program, errorList *syntax.ErrorList) ([]byte, error) {
 type emitter struct {
 	errors *syntax.ErrorList
 	buf    *bytes.Buffer
+	tab    *ast.SymbolTable
 }
 
-func (m *emitter) emitInstruction(inst *ast.Instruction) {
+func (m *emitter) emitInstruction(pc uint16, inst *ast.Instruction) {
 	switch inst.Opcode {
-	case spec.OP_BR, spec.OP_LD, spec.OP_ST, spec.OP_JSR,
+	case spec.OP_BR, spec.OP_ST, spec.OP_JSR,
 		spec.OP_LDR, spec.OP_STR, spec.OP_RTI, spec.OP_LDI,
 		spec.OP_STI, spec.OP_JMP, spec.OP_RES, spec.OP_LEA:
 		// TODO
@@ -59,7 +60,7 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			x |= 1 << 5
 			x |= inst.Imm5 & 0b11111
 		default:
-			m.errors.Add(inst.Loc(), "unknown mode")
+			m.errors.Add(inst, "unknown mode")
 		}
 
 		m.write(uint16(x), inst)
@@ -77,8 +78,19 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 			x |= 1 << 5
 			x |= inst.Imm5 & 0b11111
 		default:
-			m.errors.Add(inst.Loc(), "unknown mode")
+			m.errors.Add(inst, "unknown mode")
 		}
+
+		m.write(uint16(x), inst)
+	case spec.OP_LD:
+
+		labelIndex := m.tab.Lookup(inst.Label)
+		offset := labelIndex - pc - 1 // subtract 1, since the offset is from the incremented PC
+
+		var x int
+		x = spec.OP_LD << 12
+		x |= inst.Dr << 9
+		x |= int(offset) & 0b111111111
 
 		m.write(uint16(x), inst)
 	case spec.OP_NOT:
@@ -97,7 +109,7 @@ func (m *emitter) emitInstruction(inst *ast.Instruction) {
 
 		m.write(uint16(x), inst)
 	default:
-		m.errors.Add(inst.Loc(), fmt.Sprintf("unrecognized opcode: 0b%b", inst.Opcode))
+		m.errors.Add(inst, fmt.Sprintf("unrecognized opcode: 0b%b", inst.Opcode))
 	}
 }
 
@@ -108,6 +120,6 @@ func (m *emitter) emitFillDirective(d *ast.FillDirective) {
 func (m *emitter) write(x uint16, l syntax.HasLocation) {
 	err := binary.Write(m.buf, binary.BigEndian, x)
 	if err != nil {
-		m.errors.Add(l.Loc(), err.Error())
+		m.errors.Add(l, err.Error())
 	}
 }

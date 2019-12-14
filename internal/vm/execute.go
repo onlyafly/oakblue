@@ -135,7 +135,18 @@ func (m *Machine) Execute() error {
 		case spec.OP_JSR:
 			return fmt.Errorf("opcode not yet implemented: JSR")
 		case spec.OP_LD:
-			return fmt.Errorf("opcode not yet implemented: LD")
+			// LD
+			//  15-12  opcode
+			//  11-09  DR: destination register
+			//  08-00  PCoffset9
+
+			dr := (instr >> 9) & 0b111
+			pcOffset9 := signExtend(instr&0b111111111, 9)
+
+			memoryLocation := m.regs[spec.R_PC] + pcOffset9
+			m.regs[dr] = m.mem[memoryLocation]
+
+			m.updateFlags(dr)
 		case spec.OP_LDI:
 			return fmt.Errorf("opcode not yet implemented: LDI")
 		case spec.OP_LDR:

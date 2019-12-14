@@ -14,7 +14,7 @@ import (
 func Parse(input string, sourceName string, errorList *syntax.ErrorList) (cst.Listing, error) {
 	s, _ := Scan(sourceName, input)
 	s.errorHandler = func(t Token, message string) {
-		errorList.Add(t.Loc, message)
+		errorList.Add(t, message)
 	}
 
 	p := &parser{s: s}
@@ -106,7 +106,7 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 
 	switch token.Code {
 	case TcError:
-		errors.Add(token.Loc, "Error token: "+token.String())
+		errors.Add(token, "Error token: "+token.String())
 	case TcLeftParen:
 		/* TODO: delete
 		var list []cst.Node
@@ -122,24 +122,31 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 		return &cst.List{Nodes: list, Location: token.Loc}
 		*/
 	case TcRightParen:
-		errors.Add(token.Loc, "Unbalanced parentheses")
+		errors.Add(token, "Unbalanced parentheses")
 	case TcNumber:
 		return parseInteger(token, errors)
 	case TcHex:
 		return parseHex(token, errors)
 	case TcSymbol:
+		if p.peek().Code == TcColon {
+			p.next()
+			return &cst.Label{Name: token.Value, Location: token.Location}
+		}
 		return parseSymbol(token, errors)
 	case TcString:
 		return parseString(token, errors)
 	case TcChar:
 		//TODO: delete this: return parseChar(token, errors)
+		panic("char literal not implemented")
+	case TcColon:
+		errors.Add(token, "Colon expected only after symbol")
 	case TcSingleQuote:
 		return parseQuote(p, errors)
 	default:
-		errors.Add(token.Loc, "Unrecognized token: "+token.String())
+		errors.Add(token, "Unrecognized token: "+token.String())
 	}
 
-	return &cst.Invalid{Location: token.Loc}
+	return &cst.Invalid{Location: token.Location}
 }
 
 func parseQuote(p *parser, errors *syntax.ErrorList) cst.Node {
@@ -156,11 +163,11 @@ func parseInteger(t Token, errors *syntax.ErrorList) *cst.Integer {
 	x, err := strconv.ParseInt(t.Value, 10, 32)
 
 	if err != nil {
-		errors.Add(t.Loc, "Invalid integer: "+t.Value)
-		return &cst.Integer{Value: 0, Location: t.Loc}
+		errors.Add(t, "Invalid integer: "+t.Value)
+		return &cst.Integer{Value: 0, Location: t.Location}
 	}
 
-	return &cst.Integer{Value: int(x), Location: t.Loc}
+	return &cst.Integer{Value: int(x), Location: t.Location}
 }
 
 func parseHex(t Token, errors *syntax.ErrorList) *cst.Hex {
@@ -173,23 +180,20 @@ func parseHex(t Token, errors *syntax.ErrorList) *cst.Hex {
 
 	x, err := strconv.ParseUint(hexString, 16, 16)
 	if err != nil {
-		errors.Add(t.Loc, "Invalid hex: "+t.Value)
-		return &cst.Hex{Value: uint16(x), Location: t.Loc}
+		errors.Add(t, "Invalid hex: "+t.Value)
+		return &cst.Hex{Value: uint16(x), Location: t.Location}
 	}
 
-	return &cst.Hex{Value: uint16(x), Location: t.Loc}
+	return &cst.Hex{Value: uint16(x), Location: t.Location}
 }
 
 func parseSymbol(t Token, errors *syntax.ErrorList) cst.Node {
-	if t.Value == "nil" {
-		return &cst.Invalid{Location: t.Loc}
-	}
-	return &cst.Symbol{Name: t.Value, Location: t.Loc}
+	return &cst.Symbol{Name: t.Value, Location: t.Location}
 }
 
 func parseString(t Token, errors *syntax.ErrorList) *cst.Str {
 	content := t.Value[1 : len(t.Value)-1]
-	return &cst.Str{Value: content, Location: t.Loc}
+	return &cst.Str{Value: content, Location: t.Location}
 }
 
 ////////// Helper Procedures

@@ -30,8 +30,8 @@ func NewErrorList(kind string) *ErrorList {
 	return &ErrorList{Errors: make([]*Error, 0), Kind: kind}
 }
 
-func (el *ErrorList) Add(loc *Location, msg string) {
-	el.Errors = append(el.Errors, &Error{loc, msg, el.Kind})
+func (el *ErrorList) Add(l HasLocation, msg string) {
+	el.Errors = append(el.Errors, &Error{l.Loc(), msg, el.Kind})
 }
 
 func (el ErrorList) Error() string {

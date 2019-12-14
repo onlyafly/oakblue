@@ -10,9 +10,12 @@ import (
 
 type Program struct {
 	Statements []Statement
+	Symtab     *SymbolTable
 }
 
-func NewProgram(xs []Statement) *Program { return &Program{Statements: xs} }
+func NewProgram(xs []Statement, symtab *SymbolTable) *Program {
+	return &Program{Statements: xs, Symtab: symtab}
+}
 
 func (p *Program) String() string {
 	return strings.Join(statementsToStrings(p.Statements), "\n")
@@ -42,6 +45,7 @@ type Instruction struct {
 	Mode      int
 	Imm5      int
 	Trapvect8 uint8
+	Label     string
 	Location  *syntax.Location
 }
 

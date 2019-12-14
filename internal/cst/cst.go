@@ -64,8 +64,17 @@ type Symbol struct {
 }
 
 func NewSymbol(name string) *Symbol     { return &Symbol{Name: name} }
-func (s *Symbol) String() string        { return s.Name }
-func (s *Symbol) Loc() *syntax.Location { return s.Location }
+func (x *Symbol) String() string        { return x.Name }
+func (x *Symbol) Loc() *syntax.Location { return x.Location }
+
+type Label struct {
+	Name     string
+	Location *syntax.Location
+}
+
+func NewLabel(name string) *Label      { return &Label{Name: name} }
+func (x *Label) String() string        { return fmt.Sprintf("%s:", x.Name) }
+func (x *Label) Loc() *syntax.Location { return x.Location }
 
 // Str is a node
 type Str struct {

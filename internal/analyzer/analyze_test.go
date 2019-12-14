@@ -32,7 +32,7 @@ func TestAnalyze(t *testing.T) {
 				Mode:   1,
 				Imm5:   1,
 			},
-		})
+		}, ast.NewSymbolTable())
 
 		assert.EqualValues(t, expected, actual)
 	}

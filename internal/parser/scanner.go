@@ -18,9 +18,9 @@ import (
 ////////// Token
 
 type Token struct {
-	Loc   *syntax.Location
-	Code  TokenCode
-	Value string
+	Location *syntax.Location
+	Code     TokenCode
+	Value    string
 }
 
 func (t Token) String() string {
@@ -36,10 +36,15 @@ func (t Token) String() string {
 	return fmt.Sprintf("%v", t.Value)
 }
 
+func (t Token) Loc() *syntax.Location {
+	return t.Location
+}
+
 ////////// Token code
 
 type TokenCode int
 
+// TODO remove the unused token codes
 const (
 	TcError TokenCode = iota // important that TcError has value 0
 	TcLeftParen
@@ -53,6 +58,7 @@ const (
 	TcChar
 	TcNewline
 	TcHex
+	TcColon
 )
 
 const eof = -1
@@ -88,9 +94,9 @@ func (s *Scanner) run() {
 
 func (s *Scanner) emit(code TokenCode) {
 	s.Tokens <- Token{
-		Loc:   &syntax.Location{Pos: s.start, Line: s.line, Filename: s.name},
-		Code:  code,
-		Value: s.input[s.start:s.pos],
+		Location: &syntax.Location{Pos: s.start, Line: s.line, Filename: s.name},
+		Code:     code,
+		Value:    s.input[s.start:s.pos],
 	}
 	s.start = s.pos
 }
@@ -144,9 +150,9 @@ func (s *Scanner) acceptRun(valid string) {
 
 func (s *Scanner) emitErrorf(format string, args ...interface{}) {
 	t := Token{
-		Loc:   &syntax.Location{Pos: s.start, Line: s.line, Filename: s.name},
-		Code:  TcError,
-		Value: s.input[s.start:s.pos],
+		Location: &syntax.Location{Pos: s.start, Line: s.line, Filename: s.name},
+		Code:     TcError,
+		Value:    s.input[s.start:s.pos],
 	}
 
 	if s.errorHandler != nil {
@@ -208,6 +214,8 @@ Outer:
 			return scanChar
 		case r == ';':
 			return scanSingleLineComment
+		case r == ':':
+			s.emit(TcColon)
 		case r == 'x':
 			return scanHex
 		case isSymbolic(r):

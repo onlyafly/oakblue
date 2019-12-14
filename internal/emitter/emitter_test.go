@@ -18,7 +18,7 @@ func TestEmit_Add(t *testing.T) {
 			Mode:   1,
 			Imm5:   1,
 		},
-	})
+	}, ast.NewSymbolTable())
 
 	actual, err := Emit(program, syntax.NewErrorList("Emit"))
 	assert.NoError(t, err)

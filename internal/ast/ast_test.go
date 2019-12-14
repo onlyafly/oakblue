@@ -8,6 +8,7 @@ import (
 )
 
 func TestProgram_String_OneStatement(t *testing.T) {
+	tab := NewSymbolTable()
 	p := NewProgram([]Statement{
 		&Instruction{
 			Opcode: spec.OP_ADD,
@@ -16,7 +17,7 @@ func TestProgram_String_OneStatement(t *testing.T) {
 			Mode:   1,
 			Imm5:   1,
 		},
-	})
+	}, tab)
 
 	expected := "ADD R0 R0 1"
 	actual := p.String()
