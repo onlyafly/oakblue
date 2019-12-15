@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEmit_Add(t *testing.T) {
+func TestEmit_Add1(t *testing.T) {
 	program := ast.NewProgram([]ast.Statement{
 		&ast.Instruction{
 			Opcode: spec.OP_ADD,
@@ -25,19 +25,25 @@ func TestEmit_Add(t *testing.T) {
 
 	expected := []byte{0x30, 0x0, 0x1e, 0xa1}
 	assert.EqualValues(t, expected, actual)
+}
 
-	/*
-		instr := binary.BigEndian.Uint16(actual)
+func TestEmit_Add2(t *testing.T) {
+	program := ast.NewProgram([]ast.Statement{
+		&ast.Instruction{
+			Opcode: spec.OP_ADD,
+			Dr:     spec.R_R0,
+			Sr1:    spec.R_R0,
+			Mode:   1,
+			Imm5:   16,
+		},
+	}, ast.NewSymbolTable(), 0x3000)
 
-		mask_11111 := uint16(0x1F) // = 11111
-		mask_111 := uint16(0x7)    // = 0111
-		//mask_11 := uint16(0x3)     // = 0011
-		mask_1 := uint16(0x1) // = 0001
-		dr := (instr >> 9) & mask_111
-		sr1 := (instr >> 6) & mask_111
-		mode := (instr >> 5) & mask_1
-		imm5 := instr & mask_11111
+	actual, err := Emit(program, syntax.NewErrorList("Emit"))
+	assert.NoError(t, err)
 
-		assert.Equal(t, "", fmt.Sprintf("%d %d %d %d", dr, sr1, mode, imm5))
-	*/
+	expected := []byte{
+		0x30, 0x0, // Header
+		0b00010000, 0b00110000,
+	}
+	assert.EqualValues(t, expected, actual)
 }

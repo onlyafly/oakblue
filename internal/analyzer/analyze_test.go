@@ -26,21 +26,50 @@ func TestAnalyze(t *testing.T) {
 	})
 
 	actual, err := Analyze(input, syntax.NewErrorList("Syntax"))
-
-	if assert.NoError(t, err) {
-		expected := ast.NewProgram([]ast.Statement{
-			&ast.Instruction{
-				Opcode: spec.OP_ADD,
-				Dr:     spec.R_R0,
-				Sr1:    spec.R_R0,
-				Mode:   1,
-				Imm5:   1,
-			},
-		}, ast.NewSymbolTable(), 0x3000)
-
-		assert.EqualValues(t, expected, actual)
+	if !assert.NoError(t, err) {
+		return
 	}
 
+	expected := ast.NewProgram([]ast.Statement{
+		&ast.Instruction{
+			Opcode: spec.OP_ADD,
+			Dr:     spec.R_R0,
+			Sr1:    spec.R_R0,
+			Mode:   1,
+			Imm5:   1,
+		},
+	}, ast.NewSymbolTable(), 0x3000)
+
+	assert.EqualValues(t, expected, actual)
+}
+
+func TestAnalyze_Add(t *testing.T) {
+
+	input := cst.Listing([]*cst.Line{
+		cst.NewLine([]cst.Node{
+			cst.NewSymbol("ADD"),
+			cst.NewSymbol("R0"),
+			cst.NewSymbol("R0"),
+			cst.NewHexNumber(0xf),
+		}),
+	})
+
+	actual, err := Analyze(input, syntax.NewErrorList("Syntax"))
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	expected := ast.NewProgram([]ast.Statement{
+		&ast.Instruction{
+			Opcode: spec.OP_ADD,
+			Dr:     spec.R_R0,
+			Sr1:    spec.R_R0,
+			Mode:   1,
+			Imm5:   15,
+		},
+	}, ast.NewSymbolTable(), 0x0)
+
+	assert.EqualValues(t, expected, actual)
 }
 
 func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {

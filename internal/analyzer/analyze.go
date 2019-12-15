@@ -112,20 +112,22 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 			Sr2:      sr2,
 			Location: l.Loc(),
 		}
-	case *cst.DecimalNumber:
+	default:
+		imm5 := a.analyzeNumber(l.Nodes[3], "ADD")
+
+		if imm5 >= 16 {
+			a.errors.Add(l.Nodes[3], fmt.Sprintf("immediate argument to ADD must be less than 16: %d", imm5))
+		}
+
 		return &ast.Instruction{
 			Opcode:   spec.OP_ADD,
 			Dr:       dr,
 			Sr1:      sr1,
 			Mode:     1,
-			Imm5:     arg3.Value,
+			Imm5:     imm5,
 			Location: l.Loc(),
 		}
-	default:
-		a.errors.Add(arg3, "expected register or integer, got: "+arg3.String())
 	}
-
-	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 }
 
 func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
@@ -147,20 +149,22 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 			Sr2:      sr2,
 			Location: l.Loc(),
 		}
-	case *cst.DecimalNumber:
+	default:
+		imm5 := a.analyzeNumber(l.Nodes[3], "AND")
+
+		if imm5 >= 16 {
+			a.errors.Add(l.Nodes[3], fmt.Sprintf("immediate argument to AND must be less than 16: %d", imm5))
+		}
+
 		return &ast.Instruction{
 			Opcode:   spec.OP_AND,
 			Dr:       dr,
 			Sr1:      sr1,
 			Mode:     1,
-			Imm5:     arg3.Value,
+			Imm5:     imm5,
 			Location: l.Loc(),
 		}
-	default:
-		a.errors.Add(arg3, "expected register or integer, got: "+arg3.String())
 	}
-
-	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 }
 
 func (a *analyzer) analyzeLdInstruction(l *cst.Line) ast.Statement {
@@ -207,18 +211,13 @@ func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
 		return &ast.InvalidStatement{}
 	}
 
-	switch arg := l.Nodes[1].(type) {
-	case *cst.HexNumber:
-		return &ast.Instruction{
-			Opcode:    spec.OP_TRAP,
-			Trapvect8: uint8(arg.Value),
-			Location:  l.Loc(),
-		}
-	default:
-		a.errors.Add(arg, "expected hex, got: "+arg.String())
-	}
+	trapvect8 := a.analyzeNumber(l.Nodes[1], "TRAP")
 
-	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+	return &ast.Instruction{
+		Opcode:    spec.OP_TRAP,
+		Trapvect8: uint8(trapvect8),
+		Location:  l.Loc(),
+	}
 }
 
 func (a *analyzer) analyzeHaltInstruction(l *cst.Line) ast.Statement {
@@ -252,14 +251,21 @@ func (a *analyzer) analyzeOrigDirective(l *cst.Line, lineIndex uint16) ast.State
 		a.errors.Add(l, ".ORIG directive must appear before first instruction")
 	}
 
-	switch arg := l.Nodes[1].(type) {
-	case *cst.HexNumber:
-		a.customOrigin = arg.Value
-	default:
-		a.errors.Add(arg, "expected hexadecimal, got: "+arg.String())
-	}
+	a.customOrigin = uint16(a.analyzeNumber(l.Nodes[1], ".ORIG"))
 
 	return nil
+}
+
+func (a *analyzer) analyzeNumber(n cst.Node, instructionName string) int {
+	switch x := n.(type) {
+	case *cst.HexNumber:
+		return int(x.Value)
+	case *cst.DecimalNumber:
+		return x.Value
+	default:
+		a.errors.Add(x, instructionName+" expected number, got: "+x.String())
+		return 0
+	}
 }
 
 func (a *analyzer) analyzeRegister(n cst.Node) int {

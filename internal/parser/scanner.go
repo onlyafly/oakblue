@@ -196,18 +196,20 @@ Outer:
 			s.emit(TcLeftParen)
 		case r == ')':
 			s.emit(TcRightParen)
-		case '0' <= r && r <= '9':
-			s.backup()
-			return scanNumber
-		case r == '+' || r == '-' || r == '#':
+		case r == 'x':
+			return scanHexNumber
+		case r == '0':
 			rnext := s.next()
-			if '0' <= rnext && rnext <= '9' {
+			if rnext == 'x' {
 				s.backup()
 				s.backup()
-				return scanNumber
+				return scanHexNumber
 			}
 			s.backup()
-			return scanSymbol
+			return scanDecimalNumber
+		case ('0' <= r && r <= '9') || r == '+' || r == '-' || r == '#':
+			s.backup()
+			return scanDecimalNumber
 		case r == '^':
 			s.emit(TcCaret)
 		case r == '\'':
@@ -218,8 +220,6 @@ Outer:
 			return scanSingleLineComment
 		case r == ':':
 			s.emit(TcColon)
-		case r == 'x':
-			return scanHex
 		case isSymbolic(r):
 			s.backup()
 			return scanSymbol
@@ -301,7 +301,11 @@ func scanSymbol(s *Scanner) stateFn {
 	return scanBegin
 }
 
-func scanHex(s *Scanner) stateFn {
+func scanHexNumber(s *Scanner) stateFn {
+
+	s.accept("0")
+
+	s.accept("xX")
 
 	digits := "0123456789abcdefABCDEF"
 	s.acceptRun(digits)
@@ -317,7 +321,7 @@ func scanHex(s *Scanner) stateFn {
 	return scanBegin
 }
 
-func scanNumber(s *Scanner) stateFn {
+func scanDecimalNumber(s *Scanner) stateFn {
 
 	// Accept leading decimal flag
 	s.accept("#")
@@ -325,11 +329,8 @@ func scanNumber(s *Scanner) stateFn {
 	// Optional leading sign
 	s.accept("+-")
 
-	// Is it hex?
 	digits := "0123456789"
-	if s.accept("0") && s.accept("xX") {
-		digits = "0123456789abcdefABCDEF"
-	}
+
 	s.acceptRun(digits)
 	if s.accept(".") {
 		s.acceptRun(digits)
@@ -345,7 +346,7 @@ func scanNumber(s *Scanner) stateFn {
 	// Next thing must not be alphanumeric
 	if isAlphaNumeric(s.peek()) {
 		s.next()
-		s.emitErrorf("bad number syntax: %q", s.input[s.start:s.pos])
+		s.emitErrorf("bad decimal number syntax: %q", s.input[s.start:s.pos])
 	} else {
 		s.emit(TcDecimalNumber)
 	}

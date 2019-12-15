@@ -24,11 +24,6 @@ func TestScan_Symbols(t *testing.T) {
 	assert.Equal(t, "R1", (<-tokens).String())
 }
 
-func TestScan_Numbers(t *testing.T) {
-	_, tokens := Scan("testing", "1")
-	assert.Equal(t, "1", (<-tokens).String())
-}
-
 func TestScan_Newline(t *testing.T) {
 	_, tokens := Scan("testing", "1\n2")
 	assert.Equal(t, "1", (<-tokens).String())
@@ -36,44 +31,30 @@ func TestScan_Newline(t *testing.T) {
 	assert.Equal(t, "2", (<-tokens).String())
 }
 
-func TestScan_Hex(t *testing.T) {
-	_, tokens := Scan("testing", "x1")
+func TestScan_Numbers(t *testing.T) {
+	_, tokens := Scan("testing", "5 -5 #5 #-5 xf0 0xf0")
 
 	tok := <-tokens
-	assert.Equal(t, "x1", tok.String())
+	assert.Equal(t, "5", tok.String())
+	assert.Equal(t, TcDecimalNumber, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "-5", tok.String())
+	assert.Equal(t, TcDecimalNumber, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "#5", tok.String())
+	assert.Equal(t, TcDecimalNumber, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "#-5", tok.String())
+	assert.Equal(t, TcDecimalNumber, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "xf0", tok.String())
+	assert.Equal(t, TcHexNumber, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "0xf0", tok.String())
 	assert.Equal(t, TcHexNumber, tok.Code)
 }
-
-/* TODO: delete me
-
-func TestScan(t *testing.T) {
-	_, tokens := Scan("tester1", "(1 2 3)")
-
-	assert.Equal(t, "(", (<-tokens).String())
-	assert.Equal(t, "1", (<-tokens).String())
-	assert.Equal(t, "2", (<-tokens).String())
-	assert.Equal(t, "3", (<-tokens).String())
-	assert.Equal(t, ")", (<-tokens).String())
-	assert.Equal(t, "EOF", (<-tokens).String())
-
-	_, tokens = Scan("tester2", "(abc ab2? 3.5)")
-
-	assert.Equal(t, "(", (<-tokens).String())
-	assert.Equal(t, "abc", (<-tokens).String())
-	assert.Equal(t, "ab2?", (<-tokens).String())
-	assert.Equal(t, "3.5", (<-tokens).String())
-	assert.Equal(t, ")", (<-tokens).String())
-	assert.Equal(t, "EOF", (<-tokens).String())
-
-	_, tokens = Scan("tester3", "\\a")
-	assert.Equal(t, "\\a", (<-tokens).String())
-
-	fmt.Printf("START\n")
-	_, tokens = Scan("tester4", "(list \\a)")
-	assert.Equal(t, "(", (<-tokens).String())
-	assert.Equal(t, "list", (<-tokens).String())
-	assert.Equal(t, "\\a", (<-tokens).String())
-	assert.Equal(t, ")", (<-tokens).String())
-	fmt.Printf("END\n")
-}
-*/
