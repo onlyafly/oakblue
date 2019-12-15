@@ -52,11 +52,10 @@ type emitter struct {
 
 func (m *emitter) emitInstruction(pc uint16, inst *ast.Instruction) {
 	switch inst.Opcode {
-	case spec.OP_BR, spec.OP_ST, spec.OP_JSR,
+	case spec.OP_ST, spec.OP_JSR,
 		spec.OP_LDR, spec.OP_STR, spec.OP_RTI, spec.OP_LDI,
 		spec.OP_STI, spec.OP_JMP, spec.OP_RES, spec.OP_LEA:
-		// TODO
-		panic("not yet implemented")
+		m.errors.Add(inst, "emitter hasn't yet implemented this instruction: "+spec.OpcodeNames[inst.Opcode]) // TODO: implement these instructions
 	case spec.OP_ADD:
 		var x int
 		x = spec.OP_ADD << 12
@@ -91,6 +90,22 @@ func (m *emitter) emitInstruction(pc uint16, inst *ast.Instruction) {
 		default:
 			m.errors.Add(inst, "unknown mode")
 		}
+
+		m.write(uint16(x), inst)
+	case spec.OP_BR:
+
+		var nzp int
+		nzp |= (inst.BranchFlags.N & 0b1) << 2
+		nzp |= (inst.BranchFlags.Z & 0b1) << 1
+		nzp |= inst.BranchFlags.P & 0b1
+
+		labelIndex := m.tab.Lookup(inst.Label)
+		offset := labelIndex - pc - 1 // subtract 1, since the offset is from the incremented PC
+
+		var x int
+		x = spec.OP_BR << 12
+		x |= (nzp & 0b111) << 9
+		x |= int(offset) & 0b111111111
 
 		m.write(uint16(x), inst)
 	case spec.OP_LD:

@@ -70,6 +70,8 @@ func (a *analyzer) analyzeStatement(lineIndex uint16, l *cst.Line) (ast.Statemen
 			return a.analyzeAddInstruction(l), 1
 		case "AND":
 			return a.analyzeAndInstruction(l), 1
+		case "BR", "BRN", "BRZ", "BRP", "BRNZ", "BRZP", "BRNP", "BRNZP":
+			return a.analyzeBrInstruction(strings.ToUpper(v.Name), l), 1
 		case "LD":
 			return a.analyzeLdInstruction(l), 1
 		case "NOT":
@@ -77,7 +79,7 @@ func (a *analyzer) analyzeStatement(lineIndex uint16, l *cst.Line) (ast.Statemen
 		case "TRAP":
 			return a.analyzeTrapInstruction(l), 1
 		case "HALT":
-			return a.analyzeHaltInstruction(l), 1
+			return a.analyzeHaltPseudoInstruction(l), 1
 		case ".FILL":
 			return a.analyzeFillDirective(l), 1
 		case ".ORIG":
@@ -167,6 +169,52 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 	}
 }
 
+func (a *analyzer) analyzeBrInstruction(instructionName string, l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 1) {
+		return &ast.InvalidStatement{}
+	}
+
+	branchFlags := &ast.BranchFlags{N: 0, Z: 0, P: 0}
+	switch instructionName {
+	case "BRN":
+		branchFlags.N = 1
+	case "BRZ":
+		branchFlags.Z = 1
+	case "BRP":
+		branchFlags.P = 1
+	case "BRNZ":
+		branchFlags.N = 1
+		branchFlags.Z = 1
+	case "BRZP":
+		branchFlags.Z = 1
+		branchFlags.P = 1
+	case "BRNP":
+		branchFlags.N = 1
+		branchFlags.P = 1
+	case "BR", "BRNZP":
+		branchFlags.N = 1
+		branchFlags.Z = 1
+		branchFlags.P = 1
+	default:
+		a.errors.Add(l, "unrecognized branch instruction name: "+instructionName)
+	}
+
+	switch arg := l.Nodes[1].(type) {
+	case *cst.Symbol:
+		sym := a.analyzeSymbol(arg)
+		return &ast.Instruction{
+			Opcode:      spec.OP_BR,
+			BranchFlags: branchFlags,
+			Label:       sym,
+			Location:    l.Loc(),
+		}
+	default:
+		a.errors.Add(arg, "expected symbol, got: "+arg.String())
+	}
+
+	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
+}
+
 func (a *analyzer) analyzeLdInstruction(l *cst.Line) ast.Statement {
 	if !a.ensureLineArgs(l, 2) {
 		return &ast.InvalidStatement{}
@@ -220,7 +268,7 @@ func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
 	}
 }
 
-func (a *analyzer) analyzeHaltInstruction(l *cst.Line) ast.Statement {
+func (a *analyzer) analyzeHaltPseudoInstruction(l *cst.Line) ast.Statement {
 	if !a.ensureLineArgs(l, 0) {
 		return &ast.InvalidStatement{}
 	}

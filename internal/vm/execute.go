@@ -133,7 +133,23 @@ func (m *Machine) Execute() error {
 
 			m.updateFlags(dr)
 		case spec.OP_BR:
-			return fmt.Errorf("opcode not yet implemented: BR")
+			// BR
+			//  15-12  opcode
+			//  11     N
+			//  10		 Z
+			//  09     P
+			//  08-00  PCoffset9
+
+			n := (instr >> 11) & 0b1
+			z := (instr >> 10) & 0b1
+			p := (instr >> 9) & 0b1
+			pcOffset9 := signExtend(instr&0b111111111, 9)
+
+			if (n == 1 && m.regs[spec.R_COND] == spec.FL_NEG) ||
+				(z == 1 && m.regs[spec.R_COND] == spec.FL_ZRO) ||
+				(p == 1 && m.regs[spec.R_COND] == spec.FL_POS) {
+				m.regs[spec.R_PC] += pcOffset9
+			}
 		case spec.OP_JMP:
 			return fmt.Errorf("opcode not yet implemented: JMP")
 		case spec.OP_JSR:

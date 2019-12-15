@@ -39,15 +39,16 @@ func statementsToStringsWithFunc(statements []Statement, convert func(x Statemen
 }
 
 type Instruction struct {
-	Opcode    int
-	Dr        int
-	Sr1       int
-	Sr2       int
-	Mode      int
-	Imm5      int
-	Trapvect8 uint8
-	Label     string
-	Location  *syntax.Location
+	Opcode      int
+	Dr          int
+	Sr1         int
+	Sr2         int
+	Mode        int
+	Imm5        int
+	Trapvect8   uint8
+	Label       string
+	BranchFlags *BranchFlags
+	Location    *syntax.Location
 }
 
 func (x *Instruction) String() string {
@@ -83,3 +84,9 @@ type FillDirective struct {
 
 func (x *FillDirective) String() string        { return fmt.Sprintf(".FILL %d", x.Value) }
 func (x *FillDirective) Loc() *syntax.Location { return x.Location }
+
+type BranchFlags struct {
+	N int
+	Z int
+	P int
+}
