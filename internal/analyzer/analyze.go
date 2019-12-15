@@ -112,7 +112,7 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 			Sr2:      sr2,
 			Location: l.Loc(),
 		}
-	case *cst.Integer:
+	case *cst.DecimalNumber:
 		return &ast.Instruction{
 			Opcode:   spec.OP_ADD,
 			Dr:       dr,
@@ -147,7 +147,7 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 			Sr2:      sr2,
 			Location: l.Loc(),
 		}
-	case *cst.Integer:
+	case *cst.DecimalNumber:
 		return &ast.Instruction{
 			Opcode:   spec.OP_AND,
 			Dr:       dr,
@@ -208,7 +208,7 @@ func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
 	}
 
 	switch arg := l.Nodes[1].(type) {
-	case *cst.Hex:
+	case *cst.HexNumber:
 		return &ast.Instruction{
 			Opcode:    spec.OP_TRAP,
 			Trapvect8: uint8(arg.Value),
@@ -235,7 +235,7 @@ func (a *analyzer) analyzeHaltInstruction(l *cst.Line) ast.Statement {
 
 func (a *analyzer) analyzeFillDirective(l *cst.Line) ast.Statement {
 	switch arg := l.Nodes[1].(type) {
-	case *cst.Integer:
+	case *cst.DecimalNumber:
 		return &ast.FillDirective{
 			Value:    uint16(arg.Value),
 			Location: l.Loc(),
@@ -253,7 +253,7 @@ func (a *analyzer) analyzeOrigDirective(l *cst.Line, lineIndex uint16) ast.State
 	}
 
 	switch arg := l.Nodes[1].(type) {
-	case *cst.Hex:
+	case *cst.HexNumber:
 		a.customOrigin = arg.Value
 	default:
 		a.errors.Add(arg, "expected hexadecimal, got: "+arg.String())

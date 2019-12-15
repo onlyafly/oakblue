@@ -15,13 +15,13 @@ func TestAnalyze(t *testing.T) {
 	input := cst.Listing([]*cst.Line{
 		cst.NewLine([]cst.Node{
 			cst.NewSymbol(".ORIG"),
-			cst.NewHex(0x3000),
+			cst.NewHexNumber(0x3000),
 		}),
 		cst.NewLine([]cst.Node{
 			cst.NewSymbol("ADD"),
 			cst.NewSymbol("R0"),
 			cst.NewSymbol("R0"),
-			cst.NewInteger(1),
+			cst.NewDecimalNumber(1),
 		}),
 	})
 
@@ -49,7 +49,7 @@ func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {
 		cst.NewLine([]cst.Node{
 			cst.NewSymbol("ADD"),
 			cst.NewSymbol("R0"),
-			cst.NewInteger(1),
+			cst.NewDecimalNumber(1),
 		}),
 	})
 

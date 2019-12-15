@@ -123,10 +123,10 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 		*/
 	case TcRightParen:
 		errors.Add(token, "Unbalanced parentheses")
-	case TcNumber:
-		return parseInteger(token, errors)
-	case TcHex:
-		return parseHex(token, errors)
+	case TcDecimalNumber:
+		return parseDecimalNumber(token, errors)
+	case TcHexNumber:
+		return parseHexNumber(token, errors)
 	case TcSymbol:
 		if p.peek().Code == TcColon {
 			p.next()
@@ -159,7 +159,7 @@ func parseQuote(p *parser, errors *syntax.ErrorList) cst.Node {
 	return &cst.Invalid{}
 }
 
-func parseInteger(t Token, errors *syntax.ErrorList) *cst.Integer {
+func parseDecimalNumber(t Token, errors *syntax.ErrorList) *cst.DecimalNumber {
 	intString := t.Value
 	if strings.HasPrefix(t.Value, "#") {
 		intString = util.TrimLeftChars(t.Value, 1)
@@ -169,13 +169,13 @@ func parseInteger(t Token, errors *syntax.ErrorList) *cst.Integer {
 
 	if err != nil {
 		errors.Add(t, "Invalid integer: "+t.Value)
-		return &cst.Integer{Value: 0, Location: t.Location}
+		return &cst.DecimalNumber{Value: 0, Location: t.Location}
 	}
 
-	return &cst.Integer{Value: int(x), Location: t.Location}
+	return &cst.DecimalNumber{Value: int(x), Location: t.Location}
 }
 
-func parseHex(t Token, errors *syntax.ErrorList) *cst.Hex {
+func parseHexNumber(t Token, errors *syntax.ErrorList) *cst.HexNumber {
 	hexString := t.Value
 	if strings.HasPrefix(hexString, "0x") {
 		hexString = util.TrimLeftChars(hexString, 2)
@@ -186,10 +186,10 @@ func parseHex(t Token, errors *syntax.ErrorList) *cst.Hex {
 	x, err := strconv.ParseUint(hexString, 16, 16)
 	if err != nil {
 		errors.Add(t, "Invalid hex: "+t.Value)
-		return &cst.Hex{Value: uint16(x), Location: t.Location}
+		return &cst.HexNumber{Value: uint16(x), Location: t.Location}
 	}
 
-	return &cst.Hex{Value: uint16(x), Location: t.Location}
+	return &cst.HexNumber{Value: uint16(x), Location: t.Location}
 }
 
 func parseSymbol(t Token, errors *syntax.ErrorList) cst.Node {

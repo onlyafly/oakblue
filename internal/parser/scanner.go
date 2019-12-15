@@ -47,18 +47,20 @@ type TokenCode int
 // TODO remove the unused token codes
 const (
 	TcError TokenCode = iota // important that TcError has value 0
-	TcLeftParen
-	TcRightParen
-	TcSymbol
-	TcNumber
+
 	TcCaret
-	TcSingleQuote
-	TcEOF
-	TcString
 	TcChar
-	TcNewline
-	TcHex
 	TcColon
+	TcDecimalNumber
+	TcHexNumber
+	TcLeftParen
+	TcNewline
+	TcRightParen
+	TcSingleQuote
+	TcString
+	TcSymbol
+
+	TcEOF
 )
 
 const eof = -1
@@ -250,6 +252,7 @@ func scanSingleLineComment(s *Scanner) stateFn {
 	return scanBegin
 }
 
+/* TODO
 func scanMultiLineComment(s *Scanner) stateFn {
 	r := s.next()
 	for r != eof {
@@ -270,6 +273,7 @@ func scanMultiLineComment(s *Scanner) stateFn {
 	s.emitErrorf("non-terminated multiline comment")
 	return scanBegin
 }
+*/
 
 func scanString(s *Scanner) stateFn {
 	for isStringContent(s.next()) {
@@ -307,7 +311,7 @@ func scanHex(s *Scanner) stateFn {
 		s.next()
 		s.emitErrorf("bad hex number syntax: %q", s.input[s.start:s.pos])
 	} else {
-		s.emit(TcHex)
+		s.emit(TcHexNumber)
 	}
 
 	return scanBegin
@@ -343,7 +347,7 @@ func scanNumber(s *Scanner) stateFn {
 		s.next()
 		s.emitErrorf("bad number syntax: %q", s.input[s.start:s.pos])
 	} else {
-		s.emit(TcNumber)
+		s.emit(TcDecimalNumber)
 	}
 
 	return scanBegin

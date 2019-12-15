@@ -41,7 +41,7 @@ func TestScan_Hex(t *testing.T) {
 
 	tok := <-tokens
 	assert.Equal(t, "x1", tok.String())
-	assert.Equal(t, TcHex, tok.Code)
+	assert.Equal(t, TcHexNumber, tok.Code)
 }
 
 /* TODO: delete me

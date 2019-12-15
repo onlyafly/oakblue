@@ -12,7 +12,7 @@ func TestListing_String_OneLine(t *testing.T) {
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
-			NewInteger(1),
+			NewDecimalNumber(1),
 		}),
 	})
 
@@ -28,19 +28,19 @@ func TestListing_String_MultipleLines(t *testing.T) {
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
-			NewInteger(1),
+			NewDecimalNumber(1),
 		}),
 		NewLine([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
-			NewInteger(1),
+			NewDecimalNumber(1),
 		}),
 		NewLine([]Node{
 			NewSymbol("ADD"),
 			NewSymbol("R0"),
 			NewSymbol("R0"),
-			NewInteger(1),
+			NewDecimalNumber(1),
 		}),
 	})
 

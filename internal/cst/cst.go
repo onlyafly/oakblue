@@ -86,29 +86,29 @@ func NewStr(value string) *Str       { return &Str{Value: value} }
 func (s *Str) String() string        { return "\"" + s.Value + "\"" }
 func (s *Str) Loc() *syntax.Location { return s.Location }
 
-type Integer struct {
+type DecimalNumber struct {
 	Value    int
 	Location *syntax.Location
 }
 
-func NewInteger(value int) *Integer { return &Integer{Value: value} }
-func (x *Integer) String() string {
+func NewDecimalNumber(value int) *DecimalNumber { return &DecimalNumber{Value: value} }
+func (x *DecimalNumber) String() string {
 	rep := strconv.FormatInt(int64(x.Value), 10)
 	return rep
 }
-func (x *Integer) Loc() *syntax.Location { return x.Location }
+func (x *DecimalNumber) Loc() *syntax.Location { return x.Location }
 
-type Hex struct {
+type HexNumber struct {
 	Value    uint16
 	Location *syntax.Location
 }
 
-func NewHex(value uint16) *Hex { return &Hex{Value: value} }
-func (x *Hex) String() string {
+func NewHexNumber(value uint16) *HexNumber { return &HexNumber{Value: value} }
+func (x *HexNumber) String() string {
 	rep := "x" + strconv.FormatUint(uint64(x.Value), 16)
 	return rep
 }
-func (x *Hex) Loc() *syntax.Location { return x.Location }
+func (x *HexNumber) Loc() *syntax.Location { return x.Location }
 
 type Invalid struct {
 	Value    string
