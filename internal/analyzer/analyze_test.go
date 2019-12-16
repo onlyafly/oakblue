@@ -100,3 +100,38 @@ func Test_analyzer_analyzeRegister(t *testing.T) {
 	a.analyzeRegister(cst.NewSymbol("R8"))
 	assert.Error(t, a.errors)
 }
+
+func Test_analyzer_analyzeNumber(t *testing.T) {
+
+	a := &analyzer{errors: syntax.NewErrorList("analysis")}
+
+	want := 0
+	n := cst.NewDecimalNumber(16)
+	got := a.analyzeNumber(n, "TEST1", 5)
+	assert.Equal(t, want, got)
+
+	want = 0
+	n = cst.NewDecimalNumber(-17)
+	got = a.analyzeNumber(n, "TEST1", 5)
+	assert.Equal(t, want, got)
+
+	want = 15
+	n = cst.NewDecimalNumber(15)
+	got = a.analyzeNumber(n, "TEST1", 5)
+	assert.Equal(t, want, got)
+
+	want = -16
+	n = cst.NewDecimalNumber(-16)
+	got = a.analyzeNumber(n, "TEST1", 5)
+	assert.Equal(t, want, got)
+
+	want = 7
+	h := cst.NewHexNumber(0b00000111)
+	got = a.analyzeNumber(h, "TEST1", 3)
+	assert.Equal(t, want, got)
+
+	want = 0
+	h = cst.NewHexNumber(0b00001111)
+	got = a.analyzeNumber(h, "TEST1", 3)
+	assert.Equal(t, want, got)
+}

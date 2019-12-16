@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/onlyafly/oakblue/internal/ast"
@@ -115,11 +116,7 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 			Location: l.Loc(),
 		}
 	default:
-		imm5 := a.analyzeNumber(l.Nodes[3], "ADD")
-
-		if imm5 >= 16 {
-			a.errors.Add(l.Nodes[3], fmt.Sprintf("immediate argument to ADD must be less than 16: %d", imm5))
-		}
+		imm5 := a.analyzeNumber(l.Nodes[3], "ADD", 5)
 
 		return &ast.Instruction{
 			Opcode:   spec.OP_ADD,
@@ -152,11 +149,7 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 			Location: l.Loc(),
 		}
 	default:
-		imm5 := a.analyzeNumber(l.Nodes[3], "AND")
-
-		if imm5 >= 16 {
-			a.errors.Add(l.Nodes[3], fmt.Sprintf("immediate argument to AND must be less than 16: %d", imm5))
-		}
+		imm5 := a.analyzeNumber(l.Nodes[3], "AND", 5)
 
 		return &ast.Instruction{
 			Opcode:   spec.OP_AND,
@@ -259,7 +252,7 @@ func (a *analyzer) analyzeTrapInstruction(l *cst.Line) ast.Statement {
 		return &ast.InvalidStatement{}
 	}
 
-	trapvect8 := a.analyzeNumber(l.Nodes[1], "TRAP")
+	trapvect8 := a.analyzeNumber(l.Nodes[1], "TRAP", 8)
 
 	return &ast.Instruction{
 		Opcode:    spec.OP_TRAP,
@@ -299,17 +292,29 @@ func (a *analyzer) analyzeOrigDirective(l *cst.Line, lineIndex uint16) ast.State
 		a.errors.Add(l, ".ORIG directive must appear before first instruction")
 	}
 
-	a.customOrigin = uint16(a.analyzeNumber(l.Nodes[1], ".ORIG"))
+	a.customOrigin = uint16(a.analyzeNumber(l.Nodes[1], ".ORIG", 16))
 
 	return nil
 }
 
-func (a *analyzer) analyzeNumber(n cst.Node, instructionName string) int {
+// analyzeNumber takes a number out of the node, and ensures it isn't too large
+func (a *analyzer) analyzeNumber(n cst.Node, instructionName string, bitSize int) int {
 	switch x := n.(type) {
 	case *cst.HexNumber:
-		return int(x.Value)
+		ix := int(x.Value)
+		fx := float64(ix)
+		if fx < math.Pow(2, float64(bitSize)) {
+			return ix
+		}
+		a.errors.Add(x, fmt.Sprintf("number argument to %s is too large to fit in %d bits: %d", instructionName, bitSize, x.Value))
+		return 0
 	case *cst.DecimalNumber:
-		return x.Value
+		fx := float64(x.Value)
+		if -math.Pow(2, float64(bitSize-1)) <= fx && fx < math.Pow(2, float64(bitSize-1)) {
+			return x.Value
+		}
+		a.errors.Add(x, fmt.Sprintf("number argument to %s is too large to fit in %d bits: %d", instructionName, bitSize, x.Value))
+		return 0
 	default:
 		a.errors.Add(x, instructionName+" expected number, got: "+x.String())
 		return 0

@@ -99,24 +99,17 @@ func (m *emitter) emitInstruction(pc uint16, inst *ast.Instruction) {
 		nzp |= (inst.BranchFlags.Z & 0b1) << 1
 		nzp |= inst.BranchFlags.P & 0b1
 
-		labelIndex := m.tab.Lookup(inst.Label)
-		offset := labelIndex - pc - 1 // subtract 1, since the offset is from the incremented PC
-
 		var x int
 		x = spec.OP_BR << 12
 		x |= (nzp & 0b111) << 9
-		x |= int(offset) & 0b111111111
+		x |= m.labelToOffset(inst.Label, 0b111111111, pc, inst)
 
 		m.write(uint16(x), inst)
 	case spec.OP_LD:
-
-		labelIndex := m.tab.Lookup(inst.Label)
-		offset := labelIndex - pc - 1 // subtract 1, since the offset is from the incremented PC
-
 		var x int
 		x = spec.OP_LD << 12
 		x |= inst.Dr << 9
-		x |= int(offset) & 0b111111111
+		x |= m.labelToOffset(inst.Label, 0b111111111, pc, inst)
 
 		m.write(uint16(x), inst)
 	case spec.OP_NOT:
@@ -148,4 +141,14 @@ func (m *emitter) write(x uint16, l syntax.HasLocation) {
 	if err != nil {
 		m.errors.Add(l, err.Error())
 	}
+}
+
+func (m *emitter) labelToOffset(label string, maxValueMask uint16, pc uint16, loc syntax.HasLocation) int {
+	labelIndex := m.tab.Lookup(label)
+	offset := labelIndex - pc - 1 
+
+	if offset > maxValueMask {
+		m.errors.Add(loc, "number too large for instruction")
+	}
+	return int(offset & maxValueMask)
 }

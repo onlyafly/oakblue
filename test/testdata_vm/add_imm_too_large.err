@@ -1,0 +1,1 @@
+Syntax error (test/testdata_vm/add_imm_too_large.asm: 1): number argument to ADD is too large to fit in 5 bits: 5000
