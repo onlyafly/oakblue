@@ -145,10 +145,10 @@ func (m *emitter) write(x uint16, l syntax.HasLocation) {
 
 func (m *emitter) labelToOffset(label string, maxValueMask uint16, pc uint16, loc syntax.HasLocation) int {
 	labelIndex := m.tab.Lookup(label)
-	offset := labelIndex - pc - 1 
+	offset := labelIndex - pc - 1
 
 	if offset > maxValueMask {
-		m.errors.Add(loc, "number too large for instruction")
+		m.errors.Add(loc, "label is too far from the current instruction to fin in bit length: "+label)
 	}
 	return int(offset & maxValueMask)
 }
