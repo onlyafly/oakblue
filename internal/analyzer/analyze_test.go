@@ -19,8 +19,8 @@ func TestAnalyze(t *testing.T) {
 		}),
 		cst.NewLine([]cst.Node{
 			cst.NewSymbol("ADD"),
-			cst.NewSymbol("R0"),
-			cst.NewSymbol("R0"),
+			cst.NewRegister(spec.R_R0),
+			cst.NewRegister(spec.R_R0),
 			cst.NewDecimalNumber(1),
 		}),
 	})
@@ -48,8 +48,8 @@ func TestAnalyze_Add(t *testing.T) {
 	input := cst.Listing([]*cst.Line{
 		cst.NewLine([]cst.Node{
 			cst.NewSymbol("ADD"),
-			cst.NewSymbol("R0"),
-			cst.NewSymbol("R0"),
+			cst.NewRegister(spec.R_R0),
+			cst.NewRegister(spec.R_R0),
 			cst.NewHexNumber(0xf),
 		}),
 	})
@@ -77,7 +77,7 @@ func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {
 	input := cst.Listing([]*cst.Line{
 		cst.NewLine([]cst.Node{
 			cst.NewSymbol("ADD"),
-			cst.NewSymbol("R0"),
+			cst.NewRegister(spec.R_R0),
 			cst.NewDecimalNumber(1),
 		}),
 	})
@@ -89,15 +89,15 @@ func TestAnalyze_Add_NotEnoughArgs(t *testing.T) {
 func Test_analyzer_analyzeRegister(t *testing.T) {
 	a := &analyzer{errors: syntax.NewErrorList("analysis")}
 
-	actual := a.analyzeRegister(cst.NewSymbol("R0"))
+	actual := a.analyzeRegister(cst.NewRegister(spec.R_R0))
 	expected := spec.R_R0
 	assert.Equal(t, expected, actual)
 
-	actual = a.analyzeRegister(cst.NewSymbol("R7"))
+	actual = a.analyzeRegister(cst.NewRegister(spec.R_R7))
 	expected = spec.R_R7
 	assert.Equal(t, expected, actual)
 
-	a.analyzeRegister(cst.NewSymbol("R8"))
+	a.analyzeRegister(cst.NewRegister(spec.R_COND))
 	assert.Error(t, a.errors)
 }
 

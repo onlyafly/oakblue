@@ -221,8 +221,13 @@ Outer:
 			return scanSingleLineComment
 		case r == ':':
 			s.emit(TcColon)
-		//case r == 'r' || r == 'R':
-		//	s.emit(TcColon)
+		case r == 'r' || r == 'R':
+			rnext := s.peek()
+			if '0' <= rnext && rnext <= '9' {
+				s.backup()
+				return scanRegister
+			}
+			return scanSymbol
 		case isSymbolic(r):
 			s.backup()
 			return scanSymbol
@@ -301,6 +306,14 @@ func scanSymbol(s *Scanner) stateFn {
 	}
 	s.backup()
 	s.emit(TcSymbol)
+	return scanBegin
+}
+
+func scanRegister(s *Scanner) stateFn {
+	for isSymbolic(s.next()) {
+	}
+	s.backup()
+	s.emit(TcRegister)
 	return scanBegin
 }
 

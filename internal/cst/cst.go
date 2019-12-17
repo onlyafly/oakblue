@@ -67,6 +67,15 @@ func NewSymbol(name string) *Symbol     { return &Symbol{Name: name} }
 func (x *Symbol) String() string        { return x.Name }
 func (x *Symbol) Loc() *syntax.Location { return x.Location }
 
+type Register struct {
+	RegisterCode int
+	Location     *syntax.Location
+}
+
+func NewRegister(registerCode int) *Register { return &Register{RegisterCode: registerCode} }
+func (x *Register) String() string           { return fmt.Sprintf("R%d", x.RegisterCode) }
+func (x *Register) Loc() *syntax.Location    { return x.Location }
+
 type Label struct {
 	Name     string
 	Location *syntax.Location

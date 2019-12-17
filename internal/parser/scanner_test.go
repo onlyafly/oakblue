@@ -16,12 +16,27 @@ func TestScannerToString(t *testing.T) {
 }
 
 func TestScan_Symbols(t *testing.T) {
-	_, tokens := Scan("testing", "ADD R2 R0 R1")
+	_, tokens := Scan("testing", "ADD R2 R0 R1 ROUGH")
 
-	assert.Equal(t, "ADD", (<-tokens).String())
-	assert.Equal(t, "R2", (<-tokens).String())
-	assert.Equal(t, "R0", (<-tokens).String())
-	assert.Equal(t, "R1", (<-tokens).String())
+	tok := <-tokens
+	assert.Equal(t, "ADD", tok.String())
+	assert.Equal(t, TcSymbol, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "R2", tok.String())
+	assert.Equal(t, TcRegister, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "R0", tok.String())
+	assert.Equal(t, TcRegister, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "R1", tok.String())
+	assert.Equal(t, TcRegister, tok.Code)
+
+	tok = <-tokens
+	assert.Equal(t, "ROUGH", tok.String())
+	assert.Equal(t, TcSymbol, tok.Code)
 }
 
 func TestScan_Newline(t *testing.T) {

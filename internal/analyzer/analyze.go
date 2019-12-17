@@ -104,8 +104,8 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 	sr1 := a.analyzeRegister(l.Nodes[2])
 
 	switch arg3 := l.Nodes[3].(type) {
-	case *cst.Symbol:
-		sr2 := a.analyzeRegister(arg3)
+	case *cst.Register:
+		sr2 := arg3.RegisterCode
 		return &ast.Instruction{
 			Opcode:   spec.OP_ADD,
 			Dr:       dr,
@@ -140,8 +140,8 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 	sr1 := a.analyzeRegister(l.Nodes[2])
 
 	switch arg3 := l.Nodes[3].(type) {
-	case *cst.Symbol:
-		sr2 := a.analyzeRegister(arg3)
+	case *cst.Register:
+		sr2 := arg3.RegisterCode
 		return &ast.Instruction{
 			Opcode:   spec.OP_AND,
 			Dr:       dr,
@@ -336,32 +336,12 @@ func (a *analyzer) analyzeNumber(n cst.Node, instructionName string, bitSize int
 
 func (a *analyzer) analyzeRegister(n cst.Node) int {
 	switch v := n.(type) {
-	case *cst.Symbol:
-		switch strings.ToUpper(v.Name) {
-		case "R0":
-			return spec.R_R0
-		case "R1":
-			return spec.R_R1
-		case "R2":
-			return spec.R_R2
-		case "R3":
-			return spec.R_R3
-		case "R4":
-			return spec.R_R4
-		case "R5":
-			return spec.R_R5
-		case "R6":
-			return spec.R_R6
-		case "R7":
-			return spec.R_R7
-		default:
-			a.errors.Add(v, "expected register, got: "+v.Name)
-		}
+	case *cst.Register:
+		return v.RegisterCode
 	default:
-		a.errors.Add(v, "expected symbol, got: "+v.String())
+		a.errors.Add(v, "expected register, got: "+v.String())
+		return 0
 	}
-
-	return 0
 }
 
 func (a *analyzer) analyzeSymbol(sym *cst.Symbol) string {

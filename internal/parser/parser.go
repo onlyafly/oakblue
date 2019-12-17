@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/onlyafly/oakblue/internal/cst"
+	"github.com/onlyafly/oakblue/internal/spec"
 	"github.com/onlyafly/oakblue/internal/syntax"
 	"github.com/onlyafly/oakblue/internal/util"
 )
@@ -133,6 +134,8 @@ func parseNode(p *parser, errors *syntax.ErrorList) cst.Node {
 			return &cst.Label{Name: token.Value, Location: token.Location}
 		}
 		return parseSymbol(token, errors)
+	case TcRegister:
+		return parseRegister(token, errors)
 	case TcString:
 		return parseString(token, errors)
 	case TcChar:
@@ -194,6 +197,32 @@ func parseHexNumber(t Token, errors *syntax.ErrorList) *cst.HexNumber {
 
 func parseSymbol(t Token, errors *syntax.ErrorList) cst.Node {
 	return &cst.Symbol{Name: t.Value, Location: t.Location}
+}
+
+func parseRegister(t Token, errors *syntax.ErrorList) cst.Node {
+	r := spec.R_R0
+	switch strings.ToUpper(t.Value) {
+	case "R0":
+		r = spec.R_R0
+	case "R1":
+		r = spec.R_R1
+	case "R2":
+		r = spec.R_R2
+	case "R3":
+		r = spec.R_R3
+	case "R4":
+		r = spec.R_R4
+	case "R5":
+		r = spec.R_R5
+	case "R6":
+		r = spec.R_R6
+	case "R7":
+		r = spec.R_R7
+	default:
+		errors.Add(t, "unrecognized register, got: "+t.Value)
+	}
+
+	return &cst.Register{RegisterCode: r, Location: t.Location}
 }
 
 func parseString(t Token, errors *syntax.ErrorList) *cst.Str {
