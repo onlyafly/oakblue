@@ -59,6 +59,7 @@ const (
 	TcSingleQuote
 	TcString
 	TcSymbol
+	TcRegister
 
 	TcEOF
 )
@@ -220,6 +221,8 @@ Outer:
 			return scanSingleLineComment
 		case r == ':':
 			s.emit(TcColon)
+		//case r == 'r' || r == 'R':
+		//	s.emit(TcColon)
 		case isSymbolic(r):
 			s.backup()
 			return scanSymbol

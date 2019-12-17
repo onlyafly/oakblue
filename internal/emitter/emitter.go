@@ -102,7 +102,12 @@ func (m *emitter) emitInstruction(pc uint16, inst *ast.Instruction) {
 		var x int
 		x = spec.OP_BR << 12
 		x |= (nzp & 0b111) << 9
-		x |= m.labelToOffset(inst.Label, 0b111111111, pc, inst)
+
+		if len(inst.Label) != 0 {
+			x |= m.labelToOffset(inst.Label, 0b111111111, pc, inst)
+		} else {
+			x |= inst.PCOffset9 & 0b111111111
+		}
 
 		m.write(uint16(x), inst)
 	case spec.OP_LD:
@@ -144,11 +149,16 @@ func (m *emitter) write(x uint16, l syntax.HasLocation) {
 }
 
 func (m *emitter) labelToOffset(label string, maxValueMask uint16, pc uint16, loc syntax.HasLocation) int {
+	if len(label) == 0 {
+		m.errors.Add(loc, "label name is empty")
+		return 0
+	}
+
 	labelIndex := m.tab.Lookup(label)
 	offset := labelIndex - pc - 1
 
 	if offset > maxValueMask {
-		m.errors.Add(loc, "label is too far from the current instruction to fin in bit length: "+label)
+		m.errors.Add(loc, "label is too far from the current instruction to fit in bit length: "+label)
 	}
 	return int(offset & maxValueMask)
 }

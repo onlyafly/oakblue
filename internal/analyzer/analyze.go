@@ -96,7 +96,6 @@ func (a *analyzer) analyzeStatement(lineIndex uint16, l *cst.Line) (ast.Statemen
 }
 
 func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
-	// TODO refactor the line args check out
 	if !a.ensureLineArgs(l, 3) {
 		return &ast.InvalidStatement{}
 	}
@@ -115,7 +114,7 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 			Sr2:      sr2,
 			Location: l.Loc(),
 		}
-	default:
+	case *cst.DecimalNumber, *cst.HexNumber:
 		imm5 := a.analyzeNumber(l.Nodes[3], "ADD", 5)
 
 		return &ast.Instruction{
@@ -126,6 +125,9 @@ func (a *analyzer) analyzeAddInstruction(l *cst.Line) ast.Statement {
 			Imm5:     imm5,
 			Location: l.Loc(),
 		}
+	default:
+		a.errors.Add(arg3, "expected register or number, got: "+arg3.String())
+		return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 	}
 }
 
@@ -148,7 +150,7 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 			Sr2:      sr2,
 			Location: l.Loc(),
 		}
-	default:
+	case *cst.DecimalNumber, *cst.HexNumber:
 		imm5 := a.analyzeNumber(l.Nodes[3], "AND", 5)
 
 		return &ast.Instruction{
@@ -159,6 +161,10 @@ func (a *analyzer) analyzeAndInstruction(l *cst.Line) ast.Statement {
 			Imm5:     imm5,
 			Location: l.Loc(),
 		}
+
+	default:
+		a.errors.Add(arg3, "expected register or number, got: "+arg3.String())
+		return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 	}
 }
 
@@ -201,11 +207,18 @@ func (a *analyzer) analyzeBrInstruction(instructionName string, l *cst.Line) ast
 			Label:       sym,
 			Location:    l.Loc(),
 		}
+	case *cst.DecimalNumber, *cst.HexNumber:
+		pcoffset9 := a.analyzeNumber(arg, instructionName, 9)
+		return &ast.Instruction{
+			Opcode:      spec.OP_BR,
+			BranchFlags: branchFlags,
+			PCOffset9:   pcoffset9,
+			Location:    l.Loc(),
+		}
 	default:
-		a.errors.Add(arg, "expected symbol, got: "+arg.String())
+		a.errors.Add(arg, "expected symbol or number, got: "+arg.String())
+		return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 	}
-
-	return &ast.InvalidStatement{Location: l.Loc(), MoreInformation: l.String()}
 }
 
 func (a *analyzer) analyzeLdInstruction(l *cst.Line) ast.Statement {

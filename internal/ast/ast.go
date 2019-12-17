@@ -46,6 +46,7 @@ type Instruction struct {
 	Mode        int
 	Imm5        int
 	Trapvect8   uint8
+	PCOffset9   int
 	Label       string
 	BranchFlags *BranchFlags
 	Location    *syntax.Location
