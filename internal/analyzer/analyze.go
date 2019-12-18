@@ -81,6 +81,8 @@ func (a *analyzer) analyzeStatement(lineIndex uint16, l *cst.Line) (ast.Statemen
 			return a.analyzeTrapInstruction(l), 1
 		case "HALT":
 			return a.analyzeHaltPseudoInstruction(l), 1
+		case "NOP":
+			return a.analyzeNopPseudoInstruction(l), 1
 		case ".FILL":
 			return a.analyzeFillDirective(l), 1
 		case ".ORIG":
@@ -283,6 +285,19 @@ func (a *analyzer) analyzeHaltPseudoInstruction(l *cst.Line) ast.Statement {
 		Opcode:    spec.OP_TRAP,
 		Trapvect8: uint8(spec.TRAPVECT_HALT),
 		Location:  l.Loc(),
+	}
+}
+
+func (a *analyzer) analyzeNopPseudoInstruction(l *cst.Line) ast.Statement {
+	if !a.ensureLineArgs(l, 0) {
+		return &ast.InvalidStatement{}
+	}
+
+	return &ast.Instruction{
+		Opcode:      spec.OP_BR,
+		BranchFlags: &ast.BranchFlags{N: 0, Z: 0, P: 0},
+		PCOffset9:   0,
+		Location:    l.Loc(),
 	}
 }
 
